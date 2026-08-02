@@ -70,10 +70,9 @@ repositories {
         }
     }
     maven("https://maven.isxander.dev/releases")
-    maven("https://maven.terraformersmc.com/releases")
-    maven("https://maven.ryanhcode.dev/releases")
+    maven("https://maven.terraformersmc.com/releases") // modmenu
     maven("https://maven.parchmentmc.org")
-    maven("https://maven.maxhenkel.de/repository/public")
+    maven("https://maven.maxhenkel.de/repository/public") // simple voice chat
     maven("https://maven.ladysnake.org/releases") // cca, ratatouille
     maven("https://maven.uuid.gg/releases") // datasync
     maven("https://maven.midnightdust.eu/releases") // midnightlib
@@ -101,16 +100,14 @@ dependencies {
 
     modstitchModImplementation("eu.midnightdust:midnightlib:1.9.3+26.1-fabric")
 
-    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-base:8.0.1")
-    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-level:8.0.1")
-    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-entity:8.0.1")
-    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-scoreboard:8.0.1")
+    modstitchModImplementation("maven.modrinth:cardinal-components-api:8.0.1")
 
     modstitchModImplementation("maven.modrinth:sodium:mc26.1.2-0.9.2-alpha.3-fabric")
     modstitchModImplementation("maven.modrinth:iris:1.11.2+26.1-fabric")
 
     include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
 
+    // if needed
     //include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.3")))
 }
 

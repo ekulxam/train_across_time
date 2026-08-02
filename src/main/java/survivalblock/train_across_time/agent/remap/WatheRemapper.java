@@ -67,6 +67,7 @@ public class WatheRemapper extends Remapper {
 
             case "net/minecraft/class_4184" -> "net/minecraft/client/Camera";
             case "net/minecraft/class_4176" -> "net/minecraft/world/food/Foods";
+            case "net/minecraft/class_4174" -> "net/minecraft/world/food/FoodProperties";
 
             case "net/minecraft/class_3965" -> "net/minecraft/world/phys/BlockHitResult";
 
@@ -181,6 +182,7 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/class_572" -> "net/minecraft/client/model/HumanoidModel";
 
             case "net/minecraft/class_481" -> "net/minecraft/client/gui/screens/inventory/CreativeModeInventoryScreen";
+            case "net/minecraft/class_437" -> "net/minecraft/client/gui/screens/Screen";
             case "net/minecraft/class_429" -> "net/minecraft/client/gui/screens/options/OptionsScreen";
             case "net/minecraft/class_423" -> "net/minecraft/client/gui/screens/InBedChatScreen";
 
@@ -251,6 +253,7 @@ public class WatheRemapper extends Remapper {
             case "method_24953" -> "atCenterOf";
             case "method_22488" -> "noOcclusion";
 
+            case "method_19265" -> "food";
             case "method_15789" -> "getTickDelay";
             case "method_15729" -> "getSource";
             case "method_12832" -> "getPath";
@@ -328,6 +331,7 @@ public class WatheRemapper extends Remapper {
             case "field_41175" -> "BLOCK";
 
             case "field_25139" -> "CODEC";
+            case "field_20381" -> "HONEY_BOTTLE";
 
             case "field_15910" -> "WATER";
             case "field_15245" -> "BLOCKS";

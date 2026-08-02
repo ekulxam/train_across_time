@@ -55,7 +55,7 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
         AgentLoader.INSTRUMENTATION.addTransformer(new ClassFileTransformer() {
             @Override
             public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-                if (!(className.startsWith("dev/doctor4t/wathe") || className.startsWith("dev/doctor4t/ratatouille") || className.startsWith("dev/upcraft/datasync"))) {
+                if (!(className.startsWith("dev/doctor4t/wathe") || className.startsWith("dev/doctor4t/ratatouille"))) {
                     return null;
                 }
 

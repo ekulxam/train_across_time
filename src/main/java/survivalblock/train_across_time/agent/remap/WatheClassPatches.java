@@ -189,9 +189,100 @@ public class WatheClassPatches {
             }
         });
 
-        register("dev/doctor4t/ratatouille/util/registrar", node -> {
+        register("dev/doctor4t/ratatouille/util/registrar/BlockRegistrar", node -> {
             for (MethodNode method : node.methods) {
-                if (method.name.equals("createWithItem") && method.desc.equals("(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Ljava/util/function/Function;)Lnet/minecraft/world/level/block/Block;")) {
+                if (method.name.equals("createWithItem")) {
+                    switch (method.desc) {
+                        case "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;)Lnet/minecraft/world/level/block/Block;",
+                             "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" -> {
+                            boolean hasVarargs = method.desc.equals("(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;");
+                            InsnList insns = new InsnList();
+
+                            insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
+                            insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+
+                            insns.add(new TypeInsnNode(Opcodes.NEW, "net/minecraft/world/item/Item$Properties"));
+                            insns.add(new InsnNode(Opcodes.DUP));
+                            insns.add(new MethodInsnNode(
+                                    Opcodes.INVOKESPECIAL,
+                                    "net/minecraft/world/item/Item$Properties",
+                                    "<init>",
+                                    "()V",
+                                    false
+                            ));
+
+                            if (hasVarargs) {
+                                insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
+                            }
+
+                            insns.add(new MethodInsnNode(
+                                    Opcodes.INVOKEVIRTUAL,
+                                    "dev/doctor4t/ratatouille/util/registrar/BlockRegistrar",
+                                    "createWithItem",
+                                    hasVarargs ? "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" : "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;)Lnet/minecraft/world/level/block/Block;",
+                                    false
+                            ));
+
+                            insns.add(new InsnNode(Opcodes.ARETURN));
+
+                            method.instructions = insns;
+                            method.tryCatchBlocks.clear();
+                            method.localVariables.clear();
+                            method.maxLocals = hasVarargs ? 4 : 3;
+                        }
+                        case "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;)Lnet/minecraft/world/level/block/Block;",
+                             "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" -> {
+                            InsnList insns = new InsnList();
+
+                            insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
+
+                            insns.add(new FieldInsnNode(
+                                    Opcodes.GETSTATIC,
+                                    "net/minecraft/core/registries/Registries",
+                                    "ITEM",
+                                    "Lnet/minecraft/resources/ResourceKey;"
+                            ));
+
+                            insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            insns.add(new FieldInsnNode(
+                                    Opcodes.GETFIELD,
+                                    "dev/doctor4t/ratatouille/util/registrar/Registrar",
+                                    "namespace",
+                                    "Ljava/lang/String;"
+                            ));
+
+                            insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
+
+                            insns.add(new MethodInsnNode(
+                                    Opcodes.INVOKESTATIC,
+                                    "net/minecraft/resources/Identifier",
+                                    "fromNamespaceAndPath",
+                                    "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;",
+                                    false
+                            ));
+
+                            insns.add(new MethodInsnNode(
+                                    Opcodes.INVOKESTATIC,
+                                    "net/minecraft/resources/ResourceKey",
+                                    "create",
+                                    "(Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;",
+                                    false
+                            ));
+
+                            insns.add(new MethodInsnNode(
+                                    Opcodes.INVOKEVIRTUAL,
+                                    "net/minecraft/world/item/Item$Properties",
+                                    "setId",
+                                    "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/item/Item$Properties;",
+                                    false
+                            ));
+
+                            insns.add(new InsnNode(Opcodes.POP));
+
+                            method.instructions.insert(insns);
+                        }
+                    }
                 }
             }
         });
