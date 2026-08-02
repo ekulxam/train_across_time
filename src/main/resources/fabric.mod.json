@@ -1,0 +1,34 @@
+{
+	"schemaVersion": 1,
+	"id": "train_across_time",
+	"version": "${version}",
+	"name": "The Train Across Time",
+	"description": "Hacking WATHE into 26.1.2 since 2026",
+	"authors": [
+		"Survivalblock"
+	],
+	"contact": {
+		"sources": "https://github.com/ekulxam/train_across_time",
+        "issues": "https://github.com/ekulxam/train_across_time/issues"
+	},
+	"license": "Apache-2.0",
+	"icon": "assets/train_across_time/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "survivalblock.train_across_time.common.TheTrainAcrossTime"
+		],
+		"fabric-datagen": [
+          "survivalblock.train_across_time.client.datagen.TheTrainAcrossTimeDataGenerator"
+		]
+	},
+	"mixins": [
+		"train_across_time.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
