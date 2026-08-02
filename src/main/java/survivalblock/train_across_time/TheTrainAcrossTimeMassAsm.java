@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.minecraft.world.item;
+package survivalblock.train_across_time;
 
-public class Tiers implements Tier {
-    static {
-        t();
-    }
+import de.zonlykroks.massasmer.MassASMTransformer;
 
-    public static void t() {
-        throw new NullPointerException("GOT YOU");
+import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.*;
+
+public class TheTrainAcrossTimeMassAsm implements Runnable {
+    @Override
+    public void run() {
+        MassASMTransformer.registerNodeTransformer(id("guigraphicsextractor"), className -> className.startsWith("dev.doctor4t.wathe"), (className, node) -> {
+            return false;
+        });
     }
 }

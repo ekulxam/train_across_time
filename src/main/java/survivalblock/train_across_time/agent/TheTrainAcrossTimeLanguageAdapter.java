@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package survivalblock.train_across_time.common.agent;
+package survivalblock.train_across_time.agent;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.LanguageAdapter;
@@ -25,16 +25,16 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
-import survivalblock.train_across_time.common.agent.remap.MixinClassRemapper;
-import survivalblock.train_across_time.common.agent.remap.WatheClassPatches;
-import survivalblock.train_across_time.common.agent.remap.WatheRemapper;
+import survivalblock.train_across_time.agent.remap.MixinClassRemapper;
+import survivalblock.train_across_time.agent.remap.WatheClassPatches;
+import survivalblock.train_across_time.agent.remap.WatheRemapper;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.security.ProtectionDomain;
 
-import static survivalblock.train_across_time.common.TheTrainAcrossTimeConstants.LOGGER;
+import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER;
 
 /**
  * @author Typho

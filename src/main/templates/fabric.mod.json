@@ -18,14 +18,8 @@
   "icon": "assets/${id}/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "survivalblock.train_across_time.common.TheTrainAcrossTime"
-    ],
     "mass-asm": [
-      "survivalblock.train_across_time.common.TheTrainAcrossTimeMassAsm"
-    ],
-    "fabric-datagen": [
-      "survivalblock.train_across_time.client.datagen.TheTrainAcrossTimeDataGenerator"
+      "survivalblock.train_across_time.TheTrainAcrossTimeMassAsm"
     ]
   },
   "mixins": [
@@ -36,6 +30,6 @@
     "wathe": "1.3.2-1.21.1"
   },
   "languageAdapters": {
-    "train_across_time": "survivalblock.train_across_time.common.agent.TheTrainAcrossTimeLanguageAdapter"
+    "train_across_time": "survivalblock.train_across_time.agent.TheTrainAcrossTimeLanguageAdapter"
   }
 }

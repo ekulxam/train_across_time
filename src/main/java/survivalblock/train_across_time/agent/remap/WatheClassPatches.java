@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package survivalblock.train_across_time.common.agent.remap;
+package survivalblock.train_across_time.agent.remap;
 
 import net.fabricmc.loader.impl.util.log.Log;
 import org.objectweb.asm.Opcodes;
@@ -22,7 +22,7 @@ import org.objectweb.asm.tree.*;
 import java.util.*;
 import java.util.function.Consumer;
 
-import static survivalblock.train_across_time.common.TheTrainAcrossTimeConstants.LOGGER;
+import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER;
 
 /**
  * @author Typho

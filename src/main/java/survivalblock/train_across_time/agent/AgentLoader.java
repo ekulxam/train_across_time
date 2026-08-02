@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package survivalblock.train_across_time.common.agent;
+package survivalblock.train_across_time.agent;
 
 import java.io.IOException;
 import java.io.InputStream;

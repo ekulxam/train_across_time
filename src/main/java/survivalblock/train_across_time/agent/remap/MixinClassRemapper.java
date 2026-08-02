@@ -13,23 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package survivalblock.train_across_time.common.agent.remap;
+package survivalblock.train_across_time.agent.remap;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.commons.FieldRemapper;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 
+// TODO
 /**
  * @author Typho
  */
-public class MixinFieldRemapper extends FieldRemapper {
-    public MixinFieldRemapper(FieldVisitor fieldVisitor, Remapper remapper) {
-        super(fieldVisitor, remapper);
+public class MixinClassRemapper extends ClassRemapper {
+    public MixinClassRemapper(ClassVisitor classVisitor, Remapper remapper) {
+        super(classVisitor, remapper);
     }
 
-    public MixinFieldRemapper(int api, FieldVisitor fieldVisitor, Remapper remapper) {
-        super(api, fieldVisitor, remapper);
+    public MixinClassRemapper(int api, ClassVisitor classVisitor, Remapper remapper) {
+        super(api, classVisitor, remapper);
+    }
+
+    @Override
+    protected FieldVisitor createFieldRemapper(FieldVisitor fieldVisitor) {
+        return new MixinFieldRemapper(api, fieldVisitor, remapper);
+    }
+
+    @Override
+    protected MethodVisitor createMethodRemapper(MethodVisitor methodVisitor) {
+        return new MixinMethodRemapper(api, methodVisitor, remapper);
     }
 
     @SuppressWarnings("deprecation")

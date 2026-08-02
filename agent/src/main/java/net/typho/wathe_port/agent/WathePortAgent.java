@@ -30,7 +30,7 @@ public class WathePortAgent {
     }
 
     public static void init(Instrumentation inst) throws UnmodifiableClassException {
-        String agentName = "survivalblock.train_across_time.common.agent.AgentLoader";
+        String agentName = "survivalblock.train_across_time.agent.AgentLoader";
         Class<?> agentCls = Arrays.stream(inst.getAllLoadedClasses())
                 .filter(c -> c.getName().equals(agentName))
                 .findAny()
