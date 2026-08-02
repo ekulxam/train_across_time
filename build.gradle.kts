@@ -1,90 +1,112 @@
 plugins {
-	id("net.fabricmc.fabric-loom")
-	`maven-publish`
-    id("com.diffplug.spotless") version "7.0.2"
+    java
+
+    id("me.modmuss50.mod-publish-plugin") version "2.0.0-beta.1"
+    id("io.github.klahap.dotenv") version "1.1.3"
+
+    id("dev.isxander.modstitch.base") version "0.8.5"
 }
 
-version = providers.gradleProperty("mod_version").get()
-group = providers.gradleProperty("maven_group").get()
+modstitch {
+    modLoaderVersion = "0.19.3"
+    minecraftVersion = "26.1.2" // TODO
+
+    javaVersion.set(25)
+
+    metadata {
+        modId = project.property("id") as String
+        modName = project.property("displayName") as String
+        modVersion = project.property("version") as String
+        modGroup = project.property("group") as String
+
+        findProperty("authors")?.let { modAuthor = it as String }
+        findProperty("description")?.let { modDescription = it as String }
+        findProperty("license")?.let { modLicense = it as String }
+        findProperty("credits")?.let { modCredits = it as String }
+
+        replacementProperties.put("id", project.property("id") as String)
+        replacementProperties.put("version", project.property("version") as String)
+        replacementProperties.put("displayName", project.property("displayName") as String)
+        replacementProperties.put("description", project.property("description") as String)
+        replacementProperties.put("authors", project.property("authors") as String)
+        replacementProperties.put("contributors", project.property("contributors") as String)
+        replacementProperties.put("license", project.property("license") as String)
+        replacementProperties.put("group", project.group as String)
+        replacementProperties.put("loader", "fabric")
+        replacementProperties.put("java_version", javaVersion.toString())
+    }
+
+    loom {
+        configureLoom {
+            runs.configureEach {
+                vmArg("-Dfabric.debug.disableClassPathIsolation=true")
+            }
+        }
+    }
+
+    mixin {
+        val modId = metadata.modId.get()
+        //configs.register(modId)
+        addMixinsToModManifest = true
+    }
+
+    classTweaker.set(sc.process(
+        rootProject.file("src/main/resources/train_across_time.classtweaker"),
+        "build/classTweaker.ct"
+    ))
+}
+
+version = property("version") as String
+base.archivesName = property("id") as String
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
-}
-
-fabricApi {
-	configureDataGeneration {
-		client = true
-	}
+    mavenLocal()
+    mavenCentral()
+    maven("https://jitpack.io") // mass asmer
+    maven("https://maven.fabricmc.net")
+    maven("https://api.modrinth.com/maven") {
+        content {
+            includeGroup("maven.modrinth")
+        }
+    }
+    maven("https://maven.isxander.dev/releases")
+    maven("https://maven.terraformersmc.com/releases")
+    maven("https://maven.ryanhcode.dev/releases")
+    maven("https://maven.parchmentmc.org")
+    maven("https://maven.maxhenkel.de/repository/public")
+    maven("https://maven.ladysnake.org/releases") // cca, ratatouille
+    maven("https://maven.uuid.gg/releases") // datasync
+    maven("https://maven.midnightdust.eu/releases") // midnightlib
+    maven("https://maven.bawnorton.com/releases") // mixinsquared
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
-	minecraft("com.mojang:minecraft:${providers.gradleProperty("minecraft_version").get()}")
-	implementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
+    modstitchModImplementation("net.fabricmc.fabric-api:fabric-api:0.155.2+26.1.2")
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
+    // TODO: versioned deps
+
+    modstitchModRuntimeOnly("dev.doctor4t:wathe:1.3.2-1.21.1")
+    modstitchModRuntimeOnly("dev.doctor4t:ratatouille:1.1.3-1.21.1")
+
+    modstitchModRuntimeOnly("dev.upcraft.datasync:datasync-minecraft-26.1-fabric:0.11.0")
+
+    modstitchModRuntimeOnly("com.terraformersmc:modmenu:18.0.0")
+
+    modstitchModImplementation("de.maxhenkel.voicechat:voicechat-api:2.6.20")
+    modstitchModRuntimeOnly("maven.modrinth:simple-voice-chat:fabric-2.6.21+26.1.2")
+
+    modstitchModImplementation("eu.midnightdust:midnightlib:1.9.3+26.1-fabric")
+
+    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-base:8.0.1")
+    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-level:8.0.1")
+    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-entity:8.0.1")
+    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-scoreboard:8.0.1")
+
+    include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
+
+    //include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.3")))
 }
 
 tasks.processResources {
-	val version = version
-	inputs.property("version", version)
-
-	filesMatching("fabric.mod.json") {
-		expand("version" to version)
-	}
-}
-
-tasks.withType<JavaCompile>().configureEach {
-	options.release = 25
-}
-
-java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
-	withSourcesJar()
-
-	sourceCompatibility = JavaVersion.VERSION_25
-	targetCompatibility = JavaVersion.VERSION_25
-}
-
-tasks.jar {
-	val projectName = project.name
-	inputs.property("projectName", projectName)
-
-	from("LICENSE") {
-		rename { "${it}_$projectName" }
-	}
-}
-
-// configure the maven publication
-publishing {
-	publications {
-		register<MavenPublication>("mavenJava") {
-			from(components["java"])
-		}
-	}
-
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
-	}
-}
-
-spotless {
-    //noinspection UnnecessaryQualifiedReference
-    lineEndings = com.diffplug.spotless.LineEnding.UNIX
-
-    java {
-        licenseHeaderFile(rootProject.file("HEADER"), "(\\/(\\*)*)?(package|\\/\\/)")
-        target("src/**/*.java", "versions/*/src/**/*.java")
-    }
+    dependsOn(project(":agent").tasks.build)
 }

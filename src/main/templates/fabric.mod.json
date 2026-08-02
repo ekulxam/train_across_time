@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${displayName}",
+  "description": "${description}",
+  "authors": [
+    "${authors}"
+  ],
+  "contributors": [
+    "${contributors}"
+  ],
+  "license": "${license}",
+  "contact": {
+    "sources": "https://github.com/ekulxam/train_across_time",
+    "issues": "https://github.com/ekulxam/train_across_time/issues"
+  },
+  "icon": "assets/${id}/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "survivalblock.train_across_time.common.TheTrainAcrossTime"
+    ],
+    "mass-asm": [
+      "survivalblock.train_across_time.common.TheTrainAcrossTimeMassAsm"
+    ],
+    "fabric-datagen": [
+      "survivalblock.train_across_time.client.datagen.TheTrainAcrossTimeDataGenerator"
+    ]
+  },
+  "mixins": [
+    "train_across_time.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "~26.1",
+    "wathe": "1.3.2-1.21.1"
+  },
+  "languageAdapters": {
+    "train_across_time": "survivalblock.train_across_time.common.agent.TheTrainAcrossTimeLanguageAdapter"
+  }
+}
