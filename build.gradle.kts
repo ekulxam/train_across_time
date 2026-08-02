@@ -85,8 +85,12 @@ dependencies {
 
     // TODO: versioned deps
 
-    modstitchModRuntimeOnly("dev.doctor4t:wathe:1.3.2-1.21.1")
-    modstitchModRuntimeOnly("dev.doctor4t:ratatouille:1.1.3-1.21.1")
+    modstitchModRuntimeOnly("dev.doctor4t:wathe:1.3.2-1.21.1") {
+        isTransitive = false
+    }
+    modstitchModRuntimeOnly("dev.doctor4t:ratatouille:1.4.3-1.21.1") {
+        isTransitive = false
+    }
 
     modstitchModRuntimeOnly("dev.upcraft.datasync:datasync-minecraft-26.1-fabric:0.11.0")
 
@@ -101,6 +105,9 @@ dependencies {
     modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-level:8.0.1")
     modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-entity:8.0.1")
     modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-scoreboard:8.0.1")
+
+    modstitchModImplementation("maven.modrinth:sodium:mc26.1.2-0.9.2-alpha.3-fabric")
+    modstitchModImplementation("maven.modrinth:iris:1.11.2+26.1-fabric")
 
     include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
 

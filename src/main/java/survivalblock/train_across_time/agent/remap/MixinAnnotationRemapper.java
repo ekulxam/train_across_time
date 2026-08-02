@@ -34,11 +34,11 @@ public class MixinAnnotationRemapper extends AnnotationRemapper {
     @SuppressWarnings("deprecation")
     @Override
     protected AnnotationVisitor createAnnotationRemapper(AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(api, null, annotationVisitor, remapper);
+        return new MixinAnnotationRemapper(this.api, null, annotationVisitor, this.remapper);
     }
 
     @Override
     protected AnnotationVisitor createAnnotationRemapper(String descriptor, AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(api, descriptor, annotationVisitor, remapper);
+        return new MixinAnnotationRemapper(this.api, descriptor, annotationVisitor, this.remapper);
     }
 }

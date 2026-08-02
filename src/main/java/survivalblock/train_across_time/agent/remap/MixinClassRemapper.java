@@ -37,22 +37,22 @@ public class MixinClassRemapper extends ClassRemapper {
 
     @Override
     protected FieldVisitor createFieldRemapper(FieldVisitor fieldVisitor) {
-        return new MixinFieldRemapper(api, fieldVisitor, remapper);
+        return new MixinFieldRemapper(this.api, fieldVisitor, this.remapper);
     }
 
     @Override
     protected MethodVisitor createMethodRemapper(MethodVisitor methodVisitor) {
-        return new MixinMethodRemapper(api, methodVisitor, remapper);
+        return new MixinMethodRemapper(this.api, methodVisitor, this.remapper);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     protected AnnotationVisitor createAnnotationRemapper(AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(api, null, annotationVisitor, remapper);
+        return new MixinAnnotationRemapper(this.api, null, annotationVisitor, this.remapper);
     }
 
     @Override
     protected AnnotationVisitor createAnnotationRemapper(String descriptor, AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(api, descriptor, annotationVisitor, remapper);
+        return new MixinAnnotationRemapper(this.api, descriptor, annotationVisitor, this.remapper);
     }
 }
