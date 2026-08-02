@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "overrides": {
+    "wathe": {
+      "depends": {
+        "minecraft": "26.1.x"
+      }
+    },
+    "ratatouille": {
+      "depends": {
+        "minecraft": "26.1.x"
+      }
+    },
+    "datasync_minecraft": {
+      "depends": {
+        "minecraft": "26.1.x"
+      }
+    }
+  }
+}
