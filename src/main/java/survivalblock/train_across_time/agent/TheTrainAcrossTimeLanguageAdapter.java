@@ -24,15 +24,20 @@ import net.fabricmc.loader.impl.util.log.Log;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
-import survivalblock.train_across_time.agent.remap.ClassOutputInfo;
-import survivalblock.train_across_time.agent.remap.MixinClassRemapper;
-import survivalblock.train_across_time.agent.remap.WatheClassPatches;
-import survivalblock.train_across_time.agent.remap.WatheRemapper;
+import survivalblock.train_across_time.agent.remap.*;
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.ProtectionDomain;
+import java.util.HashMap;
+import java.util.Map;
 
 import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER;
 
@@ -51,6 +56,37 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
         Log.info(LOGGER, "Successfully loaded java agent " + AgentLoader.INSTRUMENTATION);
 
         var debugPath = FabricLoader.getInstance().isDevelopmentEnvironment() ? FabricLoader.getInstance().getGameDir().toAbsolutePath().resolve(".wathe_port_debug") : null;
+        var mappingsOutputFile = System.getProperty("train_across_time:mappings_output_file");
+        var usedMappingsOutput = mappingsOutputFile == null ? null : new ClassOutputInfo.UsedMappingsOutput() {
+            public final WatheMappingsCache cache = WatheMappingsCache.create();
+            public final Path outputFile = Paths.get(mappingsOutputFile);
+
+            @Override
+            public void useClass(String intermediary) {
+                cache.classes.put(intermediary, WatheMappingsCache.INSTANCE.classes.get(intermediary));
+            }
+
+            @Override
+            public void useMethod(String intermediary) {
+                cache.methods.put(intermediary, WatheMappingsCache.INSTANCE.methods.get(intermediary));
+            }
+
+            @Override
+            public void useField(String intermediary) {
+                cache.fields.put(intermediary, WatheMappingsCache.INSTANCE.fields.get(intermediary));
+            }
+
+            @Override
+            public void endClass() {
+                try (OutputStream out = Files.newOutputStream(outputFile)) {
+                    cache.save(new DataOutputStream(out));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+
+        WatheMappingsCache.init();
 
         AgentLoader.INSTRUMENTATION.addTransformer(new ClassFileTransformer() {
             @Override
@@ -61,8 +97,8 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
 
                 try {
                     var node = new ClassNode();
-                    var info = new ClassOutputInfo(className);
-                    new ClassReader(classfileBuffer).accept(new MixinClassRemapper(node, new WatheRemapper(Opcodes.ASM9, info)), 0);
+                    var info = new ClassOutputInfo(className, usedMappingsOutput);
+                    new ClassReader(classfileBuffer).accept(new MixinClassRemapper(new MixinClassRemapper(node, new WatheRemapper(Opcodes.ASM9, info)), WatheMappingsCache.INSTANCE.createRemapper(Opcodes.ASM9, info)), 0);
 
                     var patch = WatheClassPatches.PATCHES.get(className);
 
