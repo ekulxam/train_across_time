@@ -35,16 +35,12 @@ public class WatheClassPatches {
 
     public static final Map<String, BiConsumer<ClassNode, ClassOutputInfo>> PATCHES = new HashMap<>();
 
-    public static void register(String className, BiConsumer<ClassNode, ClassOutputInfo> patch) {
-        PATCHES.merge(className, patch, (a, b) -> (node, info) -> {
-            a.accept(node, info);
-            b.accept(node, info);
-        });
-    }
-
     public static void register(List<String> classes, BiConsumer<ClassNode, ClassOutputInfo> patch) {
         for (String cls : classes) {
-            register(cls, patch);
+            PATCHES.merge(cls, patch, (a, b) -> (node, info) -> {
+                a.accept(node, info);
+                b.accept(node, info);
+            });
         }
     }
 
@@ -193,7 +189,9 @@ public class WatheClassPatches {
             node.interfaces.add("org/ladysnake/cca/api/v3/component/Component");
         });
 
-        register("dev/doctor4t/wathe/index/WatheItems", (node, info) -> {
+        register(List.of(
+                "dev/doctor4t/wathe/index/WatheItems"
+        ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
                     method.instructions.remove(
@@ -206,7 +204,9 @@ public class WatheClassPatches {
             }
         });
 
-        register("dev/doctor4t/ratatouille/util/registrar/BlockRegistrar", (node, info) -> {
+        register(List.of(
+                "dev/doctor4t/ratatouille/util/registrar/BlockRegistrar"
+        ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("createWithItem")) {
                     switch (method.desc) {
@@ -303,7 +303,9 @@ public class WatheClassPatches {
                 }
             }
         });
-        register("dev/doctor4t/ratatouille/util/registrar/EntityTypeRegistrar", (node, info) -> {
+        register(List.of(
+                "dev/doctor4t/ratatouille/util/registrar/EntityTypeRegistrar"
+        ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("create")) {
                     List<MethodInsnNode> buildCalls = new ArrayList<>();
@@ -441,7 +443,9 @@ public class WatheClassPatches {
                 }
             }
         });
-        register("dev/doctor4t/wathe/util/ShopEntry", (node, info) -> {
+        register(List.of(
+                "dev/doctor4t/wathe/util/ShopEntry"
+        ), (node, info) -> {
             applyToField(node, "stack", field -> {
                 field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
             });
@@ -466,7 +470,9 @@ public class WatheClassPatches {
                 }
             }
         });
-        register("dev/doctor4t/wathe/game/GameConstants", (node, info) -> {
+        register(List.of(
+                "dev/doctor4t/wathe/game/GameConstants"
+        ), (node, info) -> {
             for (MethodNode methodNode : node.methods) {
                 if (methodNode.name.contains("lambda$static") && methodNode.desc.contains("Ljava/util/ArrayList")) {
                     List<MethodInsnNode> getDefaultInstanceNodes = new ArrayList<>();
@@ -501,7 +507,9 @@ public class WatheClassPatches {
                 }
             }
         });
-        register("dev/doctor4t/wathe/entity/PlayerBodyEntity", (node, info) -> {
+        register(List.of(
+                "dev/doctor4t/wathe/entity/PlayerBodyEntity"
+        ), (node, info) -> {
             for (MethodNode methodNode : node.methods) {
                 switch (methodNode.name) {
                     case "<clinit>" -> {
@@ -555,6 +563,7 @@ public class WatheClassPatches {
                         methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/world/InteractionResultHolder;", "Lnet/minecraft/world/InteractionResult;");
                     }
                 }
+                info.markChanged();
             }
         });
     }
