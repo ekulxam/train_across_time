@@ -350,7 +350,16 @@ public class WatheClassPatches {
                 field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
             });
             for (MethodNode method : node.methods) {
-                method.desc = method.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
+                if ((method.access & Opcodes.ACC_STATIC) == 0) {
+                    method.desc = method.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
+                }
+
+                for (var instruction : method.instructions) {
+                    if (instruction instanceof FieldInsnNode field && field.owner.equals("dev/doctor4t/wathe/util/ShopEntry") && field.name.equals("stack")) {
+                        field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
+                    }
+                }
+
                 if (method.name.equals("onBuy")) {
                     for (var instruction : method.instructions) {
                         if (instruction instanceof MethodInsnNode methodInsn && methodInsn.owner.equals("net/minecraft/world/item/ItemStack") && methodInsn.name.equals("copy")) {
@@ -371,10 +380,11 @@ public class WatheClassPatches {
                         } else if (instruction instanceof MethodInsnNode methodInsn) {
                             if (methodInsn.owner.equals("net/minecraft/world/item/Item") && methodInsn.name.equals("getDefaultInstance")) {
                                 getDefaultInstanceNodes.add(methodInsn);
-                            }
-                            if (methodInsn.owner.equals("net/minecraft/world/item/ItemStack") && methodInsn.name.equals("<init>")) {
+                            } else if (methodInsn.owner.equals("net/minecraft/world/item/ItemStack") && methodInsn.name.equals("<init>")) {
                                 methodInsn.owner = "net/minecraft/world/item/ItemStackTemplate";
                                 methodInsn.desc = methodInsn.desc.replace("Lnet/minecraft/world/level/ItemLike", "Lnet/minecraft/world/item/Item");
+                            } else if ((methodInsn.owner.equals("dev/doctor4t/wathe/util/ShopEntry") || methodInsn.owner.startsWith("dev/doctor4t/wathe/game/GameConstants$")) && methodInsn.name.equals("<init>")) {
+                                methodInsn.desc = methodInsn.desc.replace("net/minecraft/world/item/ItemStack", "net/minecraft/world/item/ItemStackTemplate");
                             }
                         }
                     }

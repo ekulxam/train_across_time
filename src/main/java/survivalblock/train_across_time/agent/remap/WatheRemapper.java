@@ -391,6 +391,7 @@ public class WatheRemapper extends Remapper {
                     case 8037 -> "getClickedPos";
 
                     case 7972 -> "copy";
+                    case 7960 -> "isEmpty";
                     case 7909 -> "getItem";
                     case 7906 -> "addCooldown";
                     case 7904 -> "isOnCooldown";
@@ -406,6 +407,7 @@ public class WatheRemapper extends Remapper {
                     case 5845 -> "getStringUUID";
                     case 5667 -> "getUUID";
                     case 5476 -> "getDisplayName";
+                    case 5447 -> "setItem";
                     case 5438 -> "getItem";
                     case 5431 -> "setChanged";
 
