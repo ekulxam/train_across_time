@@ -568,6 +568,40 @@ public class WatheClassPatches {
         register(List.of(
                 "dev/doctor4t/wathe/block/BarrierPanelBlock"
         ), (node, info) -> {
+            for (FieldNode field : node.fields) {
+                if (field.name.equals("SHAPES")) {
+                    if (field.signature != null) {
+                        field.signature = field.signature.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
+                    }
+
+                    field.desc = field.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
+                }
+            }
+
+            for (MethodNode method : node.methods) {
+                if (method.name.equals("<init>")) {
+                    for (AbstractInsnNode insn : method.instructions) {
+                        if (insn instanceof MethodInsnNode m) {
+                            if (m.name.equals("getShapeForEachState")) {
+                                m.desc = m.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
+                            }
+                        } else if (insn instanceof FieldInsnNode field) {
+                            if (field.name.equals("SHAPES")) {
+                                field.desc = field.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
+                            }
+                        }
+                    }
+                } else if (method.name.equals("getShape")) {
+                    for (AbstractInsnNode insn : method.instructions) {
+                        if (insn instanceof MethodInsnNode m) {
+                            if (m.name.equals("get")) {
+                                m.desc = m.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
+                                m.name = "apply";
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 }
