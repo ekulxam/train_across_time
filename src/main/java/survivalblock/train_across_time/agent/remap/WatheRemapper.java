@@ -22,12 +22,10 @@ import org.objectweb.asm.commons.Remapper;
  */
 @SuppressWarnings({"SwitchStatementWithTooFewBranches"})
 public class WatheRemapper extends Remapper {
-    public final String className;
-    public final ClassWriterInfo info;
+    public final ClassOutputInfo info;
 
-    public WatheRemapper(int api, String className, ClassWriterInfo info) {
+    public WatheRemapper(int api, ClassOutputInfo info) {
         super(api);
-        this.className = className;
         this.info = info;
     }
 
@@ -64,16 +62,23 @@ public class WatheRemapper extends Remapper {
                     case 7923 -> "net/minecraft/core/registries/BuiltInRegistries";
                     case 7922 -> "net/minecraft/core/DefaultedRegistry";
 
+                    case 7871 -> "net/minecraft/core/HolderGetter";
+
                     case 7706 -> "net/minecraft/world/item/CreativeModeTabs";
 
                     case 7225 -> "net/minecraft/core/HolderLookup";
 
                     case 6885 -> "net/minecraft/core/HolderSet";
                     case 6880 -> "net/minecraft/core/Holder";
+                    case 6862 -> "net/minecraft/tags/TagKey";
+
+                    case 5819 -> "net/minecraft/util/RandomSource";
 
                     case 5778 -> "net/minecraft/world/level/block/MultifaceBlock";
 
                     case 5558 -> "net/minecraft/world/level/block/entity/BlockEntityTicker";
+
+                    case 5455 -> "net/minecraft/core/RegistryAccess";
 
                     case 5321 -> "net/minecraft/resources/ResourceKey";
 
@@ -176,9 +181,11 @@ public class WatheRemapper extends Remapper {
                     case 2374 -> "net/minecraft/core/Position";
                     case 2366 -> "net/minecraft/world/level/block/GlazedTerracottaBlock";
                     case 2350 -> "net/minecraft/core/Direction";
+                    case 2343 -> "net/minecraft/world/level/block/EntityBlock";
                     case 2341 -> "net/minecraft/world/level/block/FaceAttachedHorizontalDirectionalBlock";
                     case 2338 -> "net/minecraft/core/BlockPos";
                     case 2323 -> "net/minecraft/world/level/block/DoorBlock";
+                    case 2319 -> "net/minecraft/commands/synchronization/SingletonArgumentInfo";
                     case 2318 -> "net/minecraft/world/level/block/DirectionalBlock";
                     case 2314 -> "net/minecraft/commands/synchronization/ArgumentTypeInfo";
 
@@ -276,7 +283,10 @@ public class WatheRemapper extends Remapper {
 
                     case 10 -> "net/minecraft/world/level/pathfinder/PathComputationType";
 
-                    default -> internalName;
+                    default -> {
+                        info.addError("No class mapping for " + internalName);
+                        yield internalName;
+                    }
                 };
             } catch (NumberFormatException ignored) {
                 internalName = switch (internalName) {
@@ -285,8 +295,10 @@ public class WatheRemapper extends Remapper {
                     case "net/minecraft/class_8710$class_9155" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$TypeAndCodec";
                     case "net/minecraft/class_8710$class_9154" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$Type";
 
+                    case "net/minecraft/class_7871$class_7872" -> "net/minecraft/core/HolderGetter$Provider";
                     case "net/minecraft/class_7225$class_7874" -> "net/minecraft/core/HolderLookup$Provider";
 
+                    case "net/minecraft/class_6885$class_6888" -> "net/minecraft/core/HolderSet$Named";
                     case "net/minecraft/class_6885$class_6887" -> "net/minecraft/core/HolderSet$ListBacked";
 
                     case "net/minecraft/class_5132$class_5133" -> "net/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder";
@@ -297,7 +309,7 @@ public class WatheRemapper extends Remapper {
                     case "net/minecraft/class_2689$class_2690" -> "net/minecraft/world/level/block/state/StateDefinition$Builder";
                     case "net/minecraft/class_2591$class_5559" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder$Factory";
                     case "net/minecraft/class_2591$class_2592" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder";
-                    case "net/minecraft/class_2350$2351" -> "net/minecraft/core/Direction$Axis";
+                    case "net/minecraft/class_2350$class_2351" -> "net/minecraft/core/Direction$Axis";
                     case "net/minecraft/class_2338$class_2339" -> "net/minecraft/core/BlockPos$MutableBlockPos";
 
                     case "net/minecraft/class_1792$class_9635" -> "net/minecraft/world/item/Item$TooltipContext";
@@ -307,7 +319,10 @@ public class WatheRemapper extends Remapper {
                     case "net/minecraft/class_1299$class_1300" -> "net/minecraft/world/entity/EntityType$Builder";
                     case "net/minecraft/class_1049$class_4006" -> "net/minecraft/client/renderer/texture/SimpleTexture$TextureImage";
 
-                    default -> internalName;
+                    default -> {
+                        info.addError("No class mapping for " + internalName);
+                        yield internalName;
+                    }
                 };
             }
         } else {
@@ -322,7 +337,7 @@ public class WatheRemapper extends Remapper {
             };
         }
 
-        internalName = switch (this.className) {
+        internalName = switch (info.className) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (internalName) {
                 case "net/minecraft/world/item/Tiers" -> "net/minecraft/world/item/ToolMaterial";
 
@@ -546,14 +561,17 @@ public class WatheRemapper extends Remapper {
                     case 349 -> "value";
                     case 327 -> "identifier";
 
-                    default -> name;
+                    default -> {
+                        info.addError("No method mapping for " + name);
+                        yield name;
+                    }
                 };
             } catch (NumberFormatException ignored) {
             }
         }
 
         // TODO
-        name = switch (this.className) {
+        name = switch (info.className) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (name) {
                 case "attributes" -> "axe";
 
@@ -577,7 +595,7 @@ public class WatheRemapper extends Remapper {
         methodDescriptor = super.mapMethodDesc(methodDescriptor);
 
         // TODO
-        methodDescriptor = switch (this.className) {
+        methodDescriptor = switch (info.className) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (methodDescriptor) {
                 case "(Lnet/minecraft/world/item/component/ItemAttributeModifiers;)Lnet/minecraft/world/item/Item$Properties;" -> "(Lnet/minecraft/world/item/ToolMaterial;FF)Lnet/minecraft/world/item/Item$Properties;";
 
@@ -662,7 +680,10 @@ public class WatheRemapper extends Remapper {
 
                     case 1079 -> "DARK_RED";
 
-                    default -> name;
+                    default -> {
+                        info.addError("No field mapping for " + name);
+                        yield name;
+                    }
                 };
             } catch (NumberFormatException ignored) {
             }

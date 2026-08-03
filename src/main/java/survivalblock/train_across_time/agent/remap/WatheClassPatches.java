@@ -33,16 +33,16 @@ public class WatheClassPatches {
     private WatheClassPatches() {
     }
 
-    public static final Map<String, BiConsumer<ClassNode, ClassWriterInfo>> PATCHES = new HashMap<>();
+    public static final Map<String, BiConsumer<ClassNode, ClassOutputInfo>> PATCHES = new HashMap<>();
 
-    public static void register(String className, BiConsumer<ClassNode, ClassWriterInfo> patch) {
+    public static void register(String className, BiConsumer<ClassNode, ClassOutputInfo> patch) {
         PATCHES.merge(className, patch, (a, b) -> (node, info) -> {
             a.accept(node, info);
             b.accept(node, info);
         });
     }
 
-    public static void register(List<String> classes, BiConsumer<ClassNode, ClassWriterInfo> patch) {
+    public static void register(List<String> classes, BiConsumer<ClassNode, ClassOutputInfo> patch) {
         for (String cls : classes) {
             register(cls, patch);
         }

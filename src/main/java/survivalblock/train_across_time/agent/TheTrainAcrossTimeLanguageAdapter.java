@@ -22,10 +22,9 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.util.log.Log;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
-import survivalblock.train_across_time.agent.remap.ClassWriterInfo;
+import survivalblock.train_across_time.agent.remap.ClassOutputInfo;
 import survivalblock.train_across_time.agent.remap.MixinClassRemapper;
 import survivalblock.train_across_time.agent.remap.WatheClassPatches;
 import survivalblock.train_across_time.agent.remap.WatheRemapper;
@@ -62,8 +61,8 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
 
                 try {
                     var node = new ClassNode();
-                    var info = new ClassWriterInfo();
-                    new ClassReader(classfileBuffer).accept(new MixinClassRemapper(node, new WatheRemapper(Opcodes.ASM9, className, info)), 0);
+                    var info = new ClassOutputInfo(className);
+                    new ClassReader(classfileBuffer).accept(new MixinClassRemapper(node, new WatheRemapper(Opcodes.ASM9, info)), 0);
 
                     var patch = WatheClassPatches.PATCHES.get(className);
 
@@ -73,7 +72,7 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
                     }
 
                     byte[] bytes = null;
-                    var writer = info.createWriter();
+                    var writer = info.end();
 
                     if (writer != null) {
                         node.accept(writer);
