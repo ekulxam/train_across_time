@@ -34,7 +34,7 @@ public class WatheRemapper extends Remapper {
         // WHY FABRIC WHY DID YOU STOP MAINTAINING INTERMEDIARY THATS LITERALLY AGAINST ITS WHOLE POINT
         if (internalName.startsWith("net/minecraft/class_")) {
             try {
-                internalName = switch (Short.parseShort(internalName.substring(internalName.lastIndexOf('_') + 1))) {
+                internalName = switch (Integer.parseInt(internalName.substring(internalName.indexOf('_') + 1))) {
                     case 9285 -> "net/minecraft/world/item/component/ItemAttributeModifiers";
 
                     case 9143 -> "net/minecraft/network/codec/StreamMemberEncoder";
@@ -211,22 +211,30 @@ public class WatheRemapper extends Remapper {
                     case 156 -> "net/minecraft/util/Util";
                     case 124 -> "net/minecraft/ChatFormatting";
 
-                    default -> switch (internalName) {
-                        case "net/minecraft/class_8710$class_9155" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$TypeAndCodec";
-                        case "net/minecraft/class_8710$class_9154" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$Type";
-                        case "net/minecraft/class_1738$class_8051" -> "net/minecraft/world/item/ArmorItem$Type";
-                        case "net/minecraft/class_7225$class_7874" -> "net/minecraft/core/HolderLookup$Provider";
-                        case "net/minecraft/class_6885$class_6887" -> "net/minecraft/core/HolderSet$ListBacked";
-                        case "net/minecraft/class_4970$class_2251" -> "net/minecraft/world/level/block/state/BlockBehaviour$Properties";
-                        case "net/minecraft/class_2689$class_2690" -> "net/minecraft/world/level/block/state/StateDefinition$Builder";
-                        case "net/minecraft/class_2338$class_2339" -> "net/minecraft/core/BlockPos$MutableBlockPos";
-                        case "net/minecraft/class_1792$class_1793" -> "net/minecraft/world/item/Item$Properties";
-                        case "net/minecraft/class_1049$class_4006" -> "net/minecraft/client/renderer/texture/SimpleTexture$TextureImage";
-
-                        default -> internalName;
-                    };
+                    default -> internalName;
                 };
             } catch (NumberFormatException ignored) {
+                internalName = switch (internalName) {
+                    case "net/minecraft/class_8710$class_9155" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$TypeAndCodec";
+                    case "net/minecraft/class_8710$class_9154" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$Type";
+
+                    case "net/minecraft/class_7225$class_7874" -> "net/minecraft/core/HolderLookup$Provider";
+
+                    case "net/minecraft/class_6885$class_6887" -> "net/minecraft/core/HolderSet$ListBacked";
+
+                    case "net/minecraft/class_4970$class_2251" -> "net/minecraft/world/level/block/state/BlockBehaviour$Properties";
+
+                    case "net/minecraft/class_2689$class_2690" -> "net/minecraft/world/level/block/state/StateDefinition$Builder";
+                    case "net/minecraft/class_2591$class_5559" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder$Factory";
+                    case "net/minecraft/class_2591$class_2592" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder";
+                    case "net/minecraft/class_2338$class_2339" -> "net/minecraft/core/BlockPos$MutableBlockPos";
+
+                    case "net/minecraft/class_1792$class_1793" -> "net/minecraft/world/item/Item$Properties";
+                    case "net/minecraft/class_1738$class_8051" -> "net/minecraft/world/item/ArmorItem$Type";
+                    case "net/minecraft/class_1049$class_4006" -> "net/minecraft/client/renderer/texture/SimpleTexture$TextureImage";
+
+                    default -> internalName;
+                };
             }
         } else {
             internalName = switch (internalName) {
@@ -275,7 +283,7 @@ public class WatheRemapper extends Remapper {
 
         if (name.startsWith("method_") || name.startsWith("comp_")) {
             try {
-                name = switch (Integer.parseInt(name.substring(name.lastIndexOf('_') + 1))) {
+                name = switch (Integer.parseInt(name.substring(name.indexOf('_') + 1))) {
                     case 60655 -> "fromNamespaceAndPath";
 
                     case 59922 -> "getRandom";
@@ -332,6 +340,7 @@ public class WatheRemapper extends Remapper {
                     case 23318 -> "getY";
                     case 23321 -> "getZ";
                     case 22488 -> "noOcclusion";
+                    case 20528 -> "create"; // technically it's 'of' but we replace it with FabricBlockEntityTypeBuilder which has 'create'
 
                     case 19265 -> "food";
                     case 18470 -> "getPlayerByUUID";
@@ -467,7 +476,7 @@ public class WatheRemapper extends Remapper {
 
         if (name.startsWith("field_")) {
             try {
-                name = switch (Integer.parseInt(name.substring(name.lastIndexOf('_') + 1))) {
+                name = switch (Integer.parseInt(name.substring(name.indexOf('_') + 1))) {
                     case 48846 -> "ARMADILLO";
                     case 44688 -> "CREATIVE_MODE_TAB";
                     case 41934 -> "HELMET";
