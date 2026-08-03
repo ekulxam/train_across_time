@@ -386,8 +386,10 @@ public class WatheClassPatches {
                                 "(Lnet/minecraft/world/item/Item;)V"
                         );
 
-                        methodNode.instructions.insertBefore(methodInsn, new TypeInsnNode(Opcodes.NEW, "net/minecraft/world/item/ItemStackTemplate"));
-                        methodNode.instructions.insertBefore(methodInsn, new InsnNode(Opcodes.DUP));
+                        AbstractInsnNode getStaticItem = methodInsn.getPrevious();
+
+                        methodNode.instructions.insertBefore(getStaticItem, new TypeInsnNode(Opcodes.NEW, "net/minecraft/world/item/ItemStackTemplate"));
+                        methodNode.instructions.insertBefore(getStaticItem, new InsnNode(Opcodes.DUP));
                         methodNode.instructions.set(methodInsn, ctor);
                     }
                 }
