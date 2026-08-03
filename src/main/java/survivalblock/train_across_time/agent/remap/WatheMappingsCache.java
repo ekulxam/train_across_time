@@ -242,7 +242,7 @@ public abstract class WatheMappingsCache {
         public void reload() {
             clear();
 
-            try (InputStream in = WatheMappingsCache.class.getResourceAsStream("mappings.bin")) {
+            try (InputStream in = WatheMappingsCache.class.getClassLoader().getResourceAsStream("mappings.bin")) {
                 if (in != null) {
                     load(new DataInputStream(in));
                 }
@@ -262,9 +262,6 @@ public abstract class WatheMappingsCache {
                 }
             }
         }
-    }
-
-    public static void init() {
     }
 
     static {

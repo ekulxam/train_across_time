@@ -84,8 +84,6 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
             }
         };
 
-        WatheMappingsCache.init();
-
         AgentLoader.INSTRUMENTATION.addTransformer(new ClassFileTransformer() {
             @Override
             public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {

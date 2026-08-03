@@ -563,8 +563,11 @@ public class WatheClassPatches {
                         methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/world/InteractionResultHolder;", "Lnet/minecraft/world/InteractionResult;");
                     }
                 }
-                info.markChanged();
             }
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/block/BarrierPanelBlock"
+        ), (node, info) -> {
         });
     }
 }
