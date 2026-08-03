@@ -20,7 +20,7 @@ import org.objectweb.asm.commons.Remapper;
 /**
  * @author Typho
  */
-@SuppressWarnings("SwitchStatementWithTooFewBranches")
+@SuppressWarnings({"SwitchStatementWithTooFewBranches", "DuplicateBranchesInSwitch"})
 public class WatheRemapper extends Remapper {
     public final String className;
 
@@ -390,6 +390,7 @@ public class WatheRemapper extends Remapper {
                     case 8042 -> "getHorizontalDirection";
                     case 8037 -> "getClickedPos";
 
+                    case 7972 -> "copy";
                     case 7909 -> "getItem";
                     case 7906 -> "addCooldown";
                     case 7904 -> "isOnCooldown";

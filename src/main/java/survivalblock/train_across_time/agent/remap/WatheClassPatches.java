@@ -34,8 +34,8 @@ public class WatheClassPatches {
 
     public static final Map<String, Consumer<ClassNode>> PATCHES = new HashMap<>();
 
-    public static void register(String cls, Consumer<ClassNode> patch) {
-        PATCHES.merge(cls, patch, (a, b) -> node -> {
+    public static void register(String className, Consumer<ClassNode> patch) {
+        PATCHES.merge(className, patch, (a, b) -> node -> {
             a.accept(node);
             b.accept(node);
         });
@@ -98,6 +98,22 @@ public class WatheClassPatches {
                 }
             }
         });
+    }
+
+    public static void applyToMethod(ClassNode node, String name, Consumer<MethodNode> action) {
+        for (MethodNode methodNode : node.methods) {
+            if (methodNode.name.equals(name)) {
+                action.accept(methodNode);
+            }
+        }
+    }
+
+    public static void applyToField(ClassNode node, String name, Consumer<FieldNode> action) {
+        for (FieldNode fieldNode : node.fields) {
+            if (fieldNode.name.equals(name)) {
+                action.accept(fieldNode);
+            }
+        }
     }
 
     public static void applyBlockIds(MethodNode method, Map<Integer, String> fallbacks) {
@@ -326,6 +342,34 @@ public class WatheClassPatches {
                 if (method.name.equals("<clinit>")) {
                     Log.info(LOGGER, "Injecting block ids into WatheBlocks");
                     applyBlockIds(method, Map.of());
+                }
+            }
+        });
+        register("dev/doctor4t/wathe/util/ShopEntry", node -> {
+            applyToField(node, "stack", field -> {
+                field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
+            });
+            for (MethodNode method : node.methods) {
+                method.desc = method.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
+                if (method.name.equals("onBuy")) {
+                    for (var instruction : method.instructions) {
+                        if (instruction instanceof MethodInsnNode methodInsn && methodInsn.owner.equals("net/minecraft/world/item/ItemStack") && methodInsn.name.equals("copy")) {
+                            methodInsn.owner = "net/minecraft/world/item/ItemStackTemplate";
+                            methodInsn.name = "create";
+                        }
+                    }
+                }
+            }
+        });
+        register("dev/doctor4t/wathe/game/GameConstants", node -> {
+            for (MethodNode method : node.methods) {
+                if (method.name.contains("lambda$static") && method.desc.contains("Ljava/util/ArrayList")) {
+                    for (var instruction : method.instructions) {
+                        if (instruction instanceof MethodInsnNode methodInsn && methodInsn.owner.equals("net/minecraft/world/item/ItemStack") && methodInsn.name.equals("<init>")) {
+                            methodInsn.owner = "net/minecraft/world/item/ItemStackTemplate";
+                            methodInsn.desc = methodInsn.desc.replace("Lnet/minecraft/world/level/ItemLike", "Lnet/minecraft/world/item/Item");
+                        }
+                    }
                 }
             }
         });
