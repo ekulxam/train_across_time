@@ -25,6 +25,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
+import survivalblock.train_across_time.agent.remap.ClassWriterInfo;
 import survivalblock.train_across_time.agent.remap.MixinClassRemapper;
 import survivalblock.train_across_time.agent.remap.WatheClassPatches;
 import survivalblock.train_across_time.agent.remap.WatheRemapper;
@@ -61,23 +62,30 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
 
                 try {
                     var node = new ClassNode();
-                    new ClassReader(classfileBuffer).accept(new MixinClassRemapper(node, new WatheRemapper(Opcodes.ASM9, className)), 0);
+                    var info = new ClassWriterInfo();
+                    new ClassReader(classfileBuffer).accept(new MixinClassRemapper(node, new WatheRemapper(Opcodes.ASM9, className, info)), 0);
 
                     var patch = WatheClassPatches.PATCHES.get(className);
 
                     if (patch != null) {
-                        patch.accept(node);
+                        info.markChanged();
+                        patch.accept(node, info);
                     }
 
-                    var writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                    node.accept(writer);
-                    var bytes = writer.toByteArray();
+                    byte[] bytes = null;
+                    var writer = info.createWriter();
+
+                    if (writer != null) {
+                        node.accept(writer);
+                        bytes = writer.toByteArray();
+                    }
 
                     if (debugPath != null) {
                         var path = debugPath.resolve(className + ".class");
                         var folder = path.getParent().toFile();
+
                         if (folder.mkdirs() || folder.exists()) {
-                            Files.write(path, bytes);
+                            Files.write(path, bytes == null ? classfileBuffer : bytes);
                         }
                     }
 

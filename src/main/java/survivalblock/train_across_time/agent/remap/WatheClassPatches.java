@@ -20,6 +20,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER;
@@ -32,16 +33,16 @@ public class WatheClassPatches {
     private WatheClassPatches() {
     }
 
-    public static final Map<String, Consumer<ClassNode>> PATCHES = new HashMap<>();
+    public static final Map<String, BiConsumer<ClassNode, ClassWriterInfo>> PATCHES = new HashMap<>();
 
-    public static void register(String className, Consumer<ClassNode> patch) {
-        PATCHES.merge(className, patch, (a, b) -> node -> {
-            a.accept(node);
-            b.accept(node);
+    public static void register(String className, BiConsumer<ClassNode, ClassWriterInfo> patch) {
+        PATCHES.merge(className, patch, (a, b) -> (node, info) -> {
+            a.accept(node, info);
+            b.accept(node, info);
         });
     }
 
-    public static void register(List<String> classes, Consumer<ClassNode> patch) {
+    public static void register(List<String> classes, BiConsumer<ClassNode, ClassWriterInfo> patch) {
         for (String cls : classes) {
             register(cls, patch);
         }
@@ -188,11 +189,11 @@ public class WatheClassPatches {
                 "dev/doctor4t/wathe/cca/TrainWorldComponent",
                 "dev/doctor4t/wathe/cca/WatheComponents",
                 "dev/doctor4t/wathe/cca/WorldBlackoutComponent"
-        ), node -> {
+        ), (node, info) -> {
             node.interfaces.add("org/ladysnake/cca/api/v3/component/Component");
         });
 
-        register("dev/doctor4t/wathe/index/WatheItems", node -> {
+        register("dev/doctor4t/wathe/index/WatheItems", (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
                     method.instructions.remove(
@@ -205,7 +206,7 @@ public class WatheClassPatches {
             }
         });
 
-        register("dev/doctor4t/ratatouille/util/registrar/BlockRegistrar", node -> {
+        register("dev/doctor4t/ratatouille/util/registrar/BlockRegistrar", (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("createWithItem")) {
                     switch (method.desc) {
@@ -302,13 +303,13 @@ public class WatheClassPatches {
                 }
             }
         });
-        register("dev/doctor4t/ratatouille/util/registrar/EntityTypeRegistrar", node -> {
+        register("dev/doctor4t/ratatouille/util/registrar/EntityTypeRegistrar", (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("create")) {
                     List<MethodInsnNode> buildCalls = new ArrayList<>();
                     for (AbstractInsnNode insn : method.instructions) {
                         if (insn instanceof MethodInsnNode methodInsnNode && methodInsnNode.owner.equals("net/minecraft/world/entity/EntityType$Builder") && methodInsnNode.name.equals("build")) {
-                            methodInsnNode.desc = methodInsnNode.desc.substring(0, 1) + "Lnet/minecraft/resources/ResourceKey;" + methodInsnNode.desc.substring(1);
+                            methodInsnNode.desc = "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/entity/EntityType;";
                             buildCalls.add(methodInsnNode);
                         }
                     }
@@ -348,7 +349,7 @@ public class WatheClassPatches {
                         ));
 
                         method.instructions.insertBefore(build, insns);
-                        method.maxStack += 2; // add a ResourceKey and Identifier
+                        info.computeMaxStackSizes();
                     }
                 }
             }
@@ -356,47 +357,51 @@ public class WatheClassPatches {
 
         register(List.of(
                 "dev/doctor4t/ratatouille/index/RatatouilleItems"
-        ), node -> {
+        ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
                     Log.info(LOGGER, "Injecting item ids into RatatouilleItems");
                     applyItemIds(method, Map.of());
+                    info.computeMaxStackSizes();
                 }
             }
         });
         register(List.of(
                 "dev/doctor4t/ratatouille/index/RatatouilleBlocks"
-        ), node -> {
+        ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
                     Log.info(LOGGER, "Injecting block ids into RatatouilleBlocks");
                     applyBlockIds(method, Map.of());
+                    info.computeMaxStackSizes();
                 }
             }
         });
         register(List.of(
                 "dev/doctor4t/wathe/index/WatheItems"
-        ), node -> {
+        ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
                     Log.info(LOGGER, "Injecting item ids into WatheItems");
                     applyItemIds(method, Map.of(
                             2, "knife"
                     ));
+                    info.computeMaxStackSizes();
                 }
             }
         });
         register(List.of(
                 "dev/doctor4t/wathe/index/WatheBlocks"
-        ), node -> {
+        ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
                     Log.info(LOGGER, "Injecting block ids into WatheBlocks");
                     applyBlockIds(method, Map.of());
+                    info.computeMaxStackSizes();
                 }
             }
         });
-        register("dev/doctor4t/wathe/util/ShopEntry", node -> {
+        register("dev/doctor4t/wathe/util/ShopEntry", (node, info) -> {
             applyToField(node, "stack", field -> {
                 field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
             });
@@ -421,7 +426,7 @@ public class WatheClassPatches {
                 }
             }
         });
-        register("dev/doctor4t/wathe/game/GameConstants", node -> {
+        register("dev/doctor4t/wathe/game/GameConstants", (node, info) -> {
             for (MethodNode methodNode : node.methods) {
                 if (methodNode.name.contains("lambda$static") && methodNode.desc.contains("Ljava/util/ArrayList")) {
                     List<MethodInsnNode> getDefaultInstanceNodes = new ArrayList<>();
@@ -456,29 +461,32 @@ public class WatheClassPatches {
                 }
             }
         });
-        register("dev/doctor4t/wathe/entity/PlayerBodyEntity", node -> {
+        register("dev/doctor4t/wathe/entity/PlayerBodyEntity", (node, info) -> {
             for (MethodNode methodNode : node.methods) {
-                //noinspection IfCanBeSwitch
-                if (methodNode.name.equals("<clinit>")) {
-                    for (var insn : methodNode.instructions) {
-                        if (insn instanceof FieldInsnNode fieldInsnNode && fieldInsnNode.owner.equals("net/minecraft/network/syncher/EntityDataSerializers") && fieldInsnNode.name.equals("OPTIONAL_UUID")) {
-                            fieldInsnNode.owner = "survivalblock/train_across_time/TrainAcrossTime";
+                switch (methodNode.name) {
+                    case "<clinit>" -> {
+                        for (var insn : methodNode.instructions) {
+                            if (insn instanceof FieldInsnNode fieldInsnNode && fieldInsnNode.owner.equals("net/minecraft/network/syncher/EntityDataSerializers") && fieldInsnNode.name.equals("OPTIONAL_UUID")) {
+                                fieldInsnNode.owner = "survivalblock/train_across_time/TrainAcrossTime";
+                            }
                         }
                     }
-                } else if (methodNode.name.equals("addAdditionalSaveData")) {
-                    methodNode.desc = methodNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
-                    for (var insn : methodNode.instructions) {
-                        if (insn instanceof MethodInsnNode methodInsnNode) {
-                            methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueOutput");
-                            methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
+                    case "addAdditionalSaveData" -> {
+                        methodNode.desc = methodNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
+                        for (var insn : methodNode.instructions) {
+                            if (insn instanceof MethodInsnNode methodInsnNode) {
+                                methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueOutput");
+                                methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
+                            }
                         }
                     }
-                } else if (methodNode.name.equals("readAdditionalSaveData")) {
-                    methodNode.desc = methodNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
-                    for (var insn : methodNode.instructions) {
-                        if (insn instanceof MethodInsnNode methodInsnNode) {
-                            methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueInput");
-                            methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+                    case "readAdditionalSaveData" -> {
+                        methodNode.desc = methodNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+                        for (var insn : methodNode.instructions) {
+                            if (insn instanceof MethodInsnNode methodInsnNode) {
+                                methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueInput");
+                                methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+                            }
                         }
                     }
                 }

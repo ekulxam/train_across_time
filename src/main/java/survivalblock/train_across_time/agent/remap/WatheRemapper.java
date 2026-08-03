@@ -23,15 +23,19 @@ import org.objectweb.asm.commons.Remapper;
 @SuppressWarnings({"SwitchStatementWithTooFewBranches"})
 public class WatheRemapper extends Remapper {
     public final String className;
+    public final ClassWriterInfo info;
 
-    public WatheRemapper(int api, String className) {
+    public WatheRemapper(int api, String className, ClassWriterInfo info) {
         super(api);
         this.className = className;
+        this.info = info;
     }
 
     // map class names (so I can ctrl+f to here quickly)
     @Override
     public String map(String internalName) {
+        var original = internalName;
+
         // WHY FABRIC WHY DID YOU STOP MAINTAINING INTERMEDIARY THATS LITERALLY AGAINST ITS WHOLE POINT - Typho
         // deobfuscation moment - Sky
         if (internalName.startsWith("net/minecraft/class_")) {
@@ -328,6 +332,10 @@ public class WatheRemapper extends Remapper {
             default -> internalName;
         };
 
+        if (!original.equals(internalName)) {
+            info.markChanged();
+        }
+
         return internalName;
     }
 
@@ -335,6 +343,8 @@ public class WatheRemapper extends Remapper {
     @SuppressWarnings({"DuplicateBranchesInSwitch", "RedundantSuppression"})
     @Override
     public String mapMethodName(String owner, String name, String descriptor) {
+        var original = name;
+
         name = switch (owner) {
             case "net/fabricmc/fabric/api/networking/v1/PayloadTypeRegistry" -> switch (name) {
                 case "configurationC2S" -> "serverboundConfiguration";
@@ -553,11 +563,17 @@ public class WatheRemapper extends Remapper {
             default -> name;
         };
 
+        if (!original.equals(name)) {
+            info.markChanged();
+        }
+
         return name;
     }
 
     @Override
     public String mapMethodDesc(String methodDescriptor) {
+        var original = methodDescriptor;
+
         methodDescriptor = super.mapMethodDesc(methodDescriptor);
 
         // TODO
@@ -571,12 +587,18 @@ public class WatheRemapper extends Remapper {
             default -> methodDescriptor;
         };
 
+        if (!original.equals(methodDescriptor)) {
+            info.markChanged();
+        }
+
         return methodDescriptor;
     }
 
     // map field names (ctrl+f)
     @Override
     public String mapFieldName(String owner, String name, String descriptor) {
+        var original = name;
+
         if (name.startsWith("field_")) {
             try {
                 name = switch (Integer.parseInt(name.substring(name.indexOf('_') + 1))) {
@@ -644,6 +666,10 @@ public class WatheRemapper extends Remapper {
                 };
             } catch (NumberFormatException ignored) {
             }
+        }
+
+        if (!original.equals(name)) {
+            info.markChanged();
         }
 
         return name;
