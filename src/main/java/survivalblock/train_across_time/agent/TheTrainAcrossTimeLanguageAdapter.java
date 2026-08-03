@@ -29,6 +29,7 @@ import survivalblock.train_across_time.agent.remap.MixinClassRemapper;
 import survivalblock.train_across_time.agent.remap.WatheClassPatches;
 import survivalblock.train_across_time.agent.remap.WatheRemapper;
 
+import java.io.FileNotFoundException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
@@ -85,6 +86,8 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
 
                         if (folder.mkdirs() || folder.exists()) {
                             Files.write(path, bytes == null ? classfileBuffer : bytes);
+                        } else {
+                            throw new FileNotFoundException("File with path " + path + " could not be written to!");
                         }
                     }
 
