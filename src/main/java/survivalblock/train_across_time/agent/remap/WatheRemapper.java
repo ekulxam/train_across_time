@@ -35,11 +35,14 @@ public class WatheRemapper extends Remapper {
         if (internalName.startsWith("net/minecraft/class_")) {
             try {
                 internalName = switch (Integer.parseInt(internalName.substring(internalName.indexOf('_') + 1))) {
+                    case 9331 -> "net/minecraft/core/component/DataComponentType";
+
                     case 9285 -> "net/minecraft/world/item/component/ItemAttributeModifiers";
 
                     case 9143 -> "net/minecraft/network/codec/StreamMemberEncoder";
                     case 9141 -> "net/minecraft/network/codec/StreamDecoder";
                     case 9139 -> "net/minecraft/network/codec/StreamCodec";
+                    case 9135 -> "net/minecraft/network/codec/ByteBufCodecs";
                     case 9129 -> "net/minecraft/network/RegistryFriendlyByteBuf";
 
                     case 8710 -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload";
@@ -215,6 +218,8 @@ public class WatheRemapper extends Remapper {
                 };
             } catch (NumberFormatException ignored) {
                 internalName = switch (internalName) {
+                    case "net/minecraft/class_9331$class_9332" -> "net/minecraft/core/component/DataComponentType$Builder";
+
                     case "net/minecraft/class_8710$class_9155" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$TypeAndCodec";
                     case "net/minecraft/class_8710$class_9154" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$Type";
 
@@ -287,6 +292,10 @@ public class WatheRemapper extends Remapper {
                     case 60655 -> "fromNamespaceAndPath";
 
                     case 59922 -> "getRandom";
+                    case 57882 -> "networkSynchronized";
+                    case 57881 -> "persistent";
+                    case 57880 -> "build";
+                    case 57873 -> "builder";
                     case 57379 -> "set";
                     case 57348 -> "attributes";
                     case 57346 -> "createAttributes";
@@ -299,6 +308,7 @@ public class WatheRemapper extends Remapper {
                     case 53969 -> "codec";
 
                     case 47983 -> "wrapAsHolder";
+                    case 47908 -> "createVariableRangeEvent";
                     case 46758 -> "asGetterLookup";
                     case 46751 -> "lookupOrThrow";
                     case 46733 -> "get";
@@ -473,11 +483,13 @@ public class WatheRemapper extends Remapper {
 
     @Override
     public String mapFieldName(String owner, String name, String descriptor) {
-
         if (name.startsWith("field_")) {
             try {
                 name = switch (Integer.parseInt(name.substring(name.indexOf('_') + 1))) {
+                    case 49658 -> "DATA_COMPONENT_TYPE";
                     case 48846 -> "ARMADILLO";
+                    case 48554 -> "STRING_UTF8";
+                    case 48547 -> "BOOL";
                     case 44688 -> "CREATIVE_MODE_TAB";
                     case 41934 -> "HELMET";
                     case 41935 -> "CHESTPLATE";
