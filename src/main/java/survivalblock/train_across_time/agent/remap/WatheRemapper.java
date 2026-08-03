@@ -125,6 +125,7 @@ public class WatheRemapper extends Remapper {
                     case 2520 -> "net/minecraft/nbt/Tag";
 
                     case 2499 -> "net/minecraft/nbt/ListTag";
+                    case 2498 -> "net/minecraft/world/level/block/SoundType";
                     case 2487 -> "net/minecraft/nbt/CompoundTag";
                     case 2470 -> "net/minecraft/world/level/block/Rotation";
                     case 2464 -> "net/minecraft/world/level/block/RenderShape";
@@ -167,8 +168,10 @@ public class WatheRemapper extends Remapper {
 
                     case 1542 -> "net/minecraft/world/entity/item/ItemEntity";
 
+                    case 1311 -> "net/minecraft/world/entity/MobCategory";
                     case 1309 -> "net/minecraft/world/entity/LivingEntity";
 
+                    case 1299 -> "net/minecraft/world/entity/EntityType";
                     case 1297 -> "net/minecraft/world/entity/Entity";
                     case 1269 -> "net/minecraft/world/InteractionResult";
                     case 1263 -> "net/minecraft/world/Container";
@@ -236,6 +239,8 @@ public class WatheRemapper extends Remapper {
 
                     case "net/minecraft/class_1792$class_1793" -> "net/minecraft/world/item/Item$Properties";
                     case "net/minecraft/class_1738$class_8051" -> "net/minecraft/world/item/ArmorItem$Type";
+                    case "net/minecraft/class_1299$class_4049" -> "net/minecraft/world/entity/EntityType$EntityFactory";
+                    case "net/minecraft/class_1299$class_1300" -> "net/minecraft/world/entity/EntityType$Builder";
                     case "net/minecraft/class_1049$class_4006" -> "net/minecraft/client/renderer/texture/SimpleTexture$TextureImage";
 
                     default -> internalName;
@@ -341,6 +346,7 @@ public class WatheRemapper extends Remapper {
                     case 27693 -> "append";
                     case 27692 -> "withStyle";
                     case 27661 -> "copy";
+                    case 27299 -> "clientTrackingRange";
                     case 26204 -> "getBlock";
                     case 26186 -> "rotate";
                     case 25927 -> "putUUID";
@@ -355,6 +361,7 @@ public class WatheRemapper extends Remapper {
                     case 19265 -> "food";
                     case 18470 -> "getPlayerByUUID";
                     case 18456 -> "players";
+                    case 17687 -> "sized";
                     case 17356 -> "playNotifySound";
                     case 16887 -> "getUpdateTag";
                     case 15789 -> "getTickDelay";
@@ -432,6 +439,8 @@ public class WatheRemapper extends Remapper {
 
                     case 6047 -> "getMainHandItem";
 
+                    case 5903 -> "of";
+                    case 5901 -> "noSummon";
                     case 5845 -> "getStringUUID";
                     case 5667 -> "getUUID";
                     case 5476 -> "getDisplayName";
@@ -498,6 +507,7 @@ public class WatheRemapper extends Remapper {
                     case 41197 -> "ITEM";
                     case 41181 -> "BLOCK_ENTITY_TYPE";
                     case 41178 -> "ITEM";
+                    case 41177 -> "ENTITY_TYPE";
                     case 41175 -> "BLOCK";
                     case 41172 -> "SOUND_EVENT";
                     case 40202 -> "COMBAT";
@@ -509,6 +519,7 @@ public class WatheRemapper extends Remapper {
                     case 22030 -> "NETHERITE_BOOTS";
                     case 20381 -> "HONEY_BOTTLE";
 
+                    case 17715 -> "MISC";
                     case 15910 -> "WATER";
                     case 15248 -> "PLAYERS";
                     case 15245 -> "BLOCKS";

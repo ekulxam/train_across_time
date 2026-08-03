@@ -302,6 +302,40 @@ public class WatheClassPatches {
                 }
             }
         });
+        register("dev/doctor4t/ratatouille/util/registrar/EntityTypeRegistrar", node -> {
+            for (MethodNode method : node.methods) {
+                if (method.name.equals("create")) {
+                    InsnList insns = new InsnList();
+
+                    insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                    insns.add(new FieldInsnNode(
+                            Opcodes.GETFIELD,
+                            "dev/doctor4t/ratatouille/util/registrar/Registrar",
+                            "namespace",
+                            "Ljava/lang/String;"
+                    ));
+                    insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
+                    insns.add(new MethodInsnNode(
+                            Opcodes.INVOKESTATIC,
+                            "net/minecraft/resources/Identifier",
+                            "fromNamespaceAndPath",
+                            "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;",
+                            false
+                    ));
+                    insns.add(new MethodInsnNode(
+                            Opcodes.INVOKESTATIC,
+                            "net/minecraft/resources/ResourceKey",
+                            "create",
+                            "(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;",
+                            false
+                    ));
+
+                    for (AbstractInsnNode insn : method.instructions) {
+                        // look for EntityType.Builder.build() calls and replace with the instructions above, also create a new insn list for every build call
+                    }
+                }
+            }
+        });
 
         register(List.of(
                 "dev/doctor4t/ratatouille/index/RatatouilleItems"
