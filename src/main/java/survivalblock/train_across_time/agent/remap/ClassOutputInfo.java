@@ -3,8 +3,7 @@ package survivalblock.train_across_time.agent.remap;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassWriter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ClassOutputInfo {
     public final String className;
@@ -34,6 +33,8 @@ public class ClassOutputInfo {
 
     public @Nullable ClassWriter end() {
         if (!errors.isEmpty()) {
+            var errors = new ArrayList<>(this.errors);
+            Collections.sort(errors);
             throw new IllegalStateException((errors.size() == 1 ? "Error" : "Errors") + " while transforming class " + className + ":\n" + String.join("\n", errors));
         }
 
