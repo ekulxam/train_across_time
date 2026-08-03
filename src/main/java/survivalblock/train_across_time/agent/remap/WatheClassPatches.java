@@ -22,7 +22,6 @@ import org.objectweb.asm.tree.*;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER;
 
@@ -546,8 +545,10 @@ public class WatheClassPatches {
                 // WHY IS KNIFEITEM STILL NOT WORKING
                 methodNode.desc = methodNode.desc.replace("Lnet/minecraft/world/InteractionResultHolder<Lnet/minecraft/world/item/ItemStack;>", "Lnet/minecraft/world/InteractionResult;");
                 methodNode.desc = methodNode.desc.replace("Lnet/minecraft/world/InteractionResultHolder;", "Lnet/minecraft/world/InteractionResult;");
-                methodNode.signature = methodNode.signature.replace("Lnet/minecraft/world/InteractionResultHolder<Lnet/minecraft/world/item/ItemStack;>", "Lnet/minecraft/world/InteractionResult;");
-                methodNode.signature = methodNode.signature.replace("Lnet/minecraft/world/InteractionResultHolder;", "Lnet/minecraft/world/InteractionResult;");
+                if (methodNode.signature != null) {
+                    methodNode.signature = methodNode.signature.replace("Lnet/minecraft/world/InteractionResultHolder<Lnet/minecraft/world/item/ItemStack;>", "Lnet/minecraft/world/InteractionResult;");
+                    methodNode.signature = methodNode.signature.replace("Lnet/minecraft/world/InteractionResultHolder;", "Lnet/minecraft/world/InteractionResult;");
+                }
                 for (var insn : methodNode.instructions) {
                     if (insn instanceof MethodInsnNode methodInsnNode) {
                         methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/world/InteractionResultHolder", "net/minecraft/world/InteractionResult");
@@ -557,42 +558,4 @@ public class WatheClassPatches {
             }
         });
     }
-
-    /*public record MatchExactPredicate(String match) implements Predicate<String> {
-        @Override
-        public boolean test(String s) {
-            return Objects.equals(s, match);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            MatchExactPredicate that = (MatchExactPredicate) o;
-            return Objects.equals(this.match, that.match);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(this.match);
-        }
-    }
-
-    public record StartWithPredicate(String beginning) implements Predicate<String> {
-        @Override
-        public boolean test(String s) {
-            return s.startsWith(this.beginning);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            StartWithPredicate that = (StartWithPredicate) o;
-            return Objects.equals(this.beginning, that.beginning);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(this.beginning);
-        }
-    }*/
 }

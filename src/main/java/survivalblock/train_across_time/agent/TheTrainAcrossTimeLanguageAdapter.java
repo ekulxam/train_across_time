@@ -61,23 +61,23 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
 
             @Override
             public void useClass(String intermediary) {
-                cache.classes.put(intermediary, WatheMappingsCache.INSTANCE.classes.get(intermediary));
+                this.cache.classes.put(intermediary, WatheMappingsCache.INSTANCE.classes.get(intermediary));
             }
 
             @Override
             public void useMethod(String intermediary) {
-                cache.methods.put(intermediary, WatheMappingsCache.INSTANCE.methods.get(intermediary));
+                this.cache.methods.put(intermediary, WatheMappingsCache.INSTANCE.methods.get(intermediary));
             }
 
             @Override
             public void useField(String intermediary) {
-                cache.fields.put(intermediary, WatheMappingsCache.INSTANCE.fields.get(intermediary));
+                this.cache.fields.put(intermediary, WatheMappingsCache.INSTANCE.fields.get(intermediary));
             }
 
             @Override
             public void endClass() {
-                try (OutputStream out = Files.newOutputStream(outputFile)) {
-                    cache.save(new DataOutputStream(out));
+                try (OutputStream out = Files.newOutputStream(this.outputFile)) {
+                    this.cache.save(new DataOutputStream(out));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
