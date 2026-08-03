@@ -27,7 +27,60 @@ public abstract class WatheMappingsCache {
     public final Map<String, String> methods = new HashMap<>();
     public final Map<String, String> fields = new HashMap<>();
 
-    public abstract Remapper createRemapper(int api, ClassOutputInfo info);
+    public Remapper createRemapper(int api, ClassOutputInfo info) {
+        return new Remapper(api) {
+            @Override
+            public String map(String internalName) {
+                if (internalName.startsWith("net/minecraft/class_")) {
+                    var newName = classes.get(internalName);
+
+                    if (newName == null) {
+                        info.addError("No class mapping for " + internalName);
+                    } else {
+                        info.markChanged();
+                        info.usedMappingsOutput.useClass(internalName);
+                        return newName;
+                    }
+                }
+
+                return super.map(internalName);
+            }
+
+            @Override
+            public String mapMethodName(String owner, String name, String descriptor) {
+                if (name.startsWith("method_")) {
+                    var newName = methods.get(name);
+
+                    if (newName == null) {
+                        info.addError("No method mapping for " + name);
+                    } else {
+                        info.markChanged();
+                        info.usedMappingsOutput.useMethod(name);
+                        return newName;
+                    }
+                }
+
+                return super.mapMethodName(owner, name, descriptor);
+            }
+
+            @Override
+            public String mapFieldName(String owner, String name, String descriptor) {
+                if (name.startsWith("field_")) {
+                    var newName = fields.get(name);
+
+                    if (newName == null) {
+                        info.addError("No field mapping for " + name);
+                    } else {
+                        info.markChanged();
+                        info.usedMappingsOutput.useField(name);
+                        return newName;
+                    }
+                }
+
+                return super.mapFieldName(owner, name, descriptor);
+            }
+        };
+    }
 
     public void load(DataInput in) throws IOException {
         var numClasses = in.readInt();
@@ -161,62 +214,6 @@ public abstract class WatheMappingsCache {
         };
 
         @Override
-        public Remapper createRemapper(int api, ClassOutputInfo info) {
-            return new Remapper(api) {
-                @Override
-                public String map(String internalName) {
-                    if (internalName.startsWith("net/minecraft/class_")) {
-                        var newName = classes.get(internalName);
-
-                        if (newName == null) {
-                            info.addError("No class mapping for " + internalName);
-                        } else {
-                            info.markChanged();
-                            info.usedMappingsOutput.useClass(internalName);
-                            return newName;
-                        }
-                    }
-
-                    return super.map(internalName);
-                }
-
-                @Override
-                public String mapMethodName(String owner, String name, String descriptor) {
-                    if (name.startsWith("method_")) {
-                        var newName = methods.get(name);
-
-                        if (newName == null) {
-                            info.addError("No method mapping for " + name);
-                        } else {
-                            info.markChanged();
-                            info.usedMappingsOutput.useMethod(name);
-                            return newName;
-                        }
-                    }
-
-                    return super.mapMethodName(owner, name, descriptor);
-                }
-
-                @Override
-                public String mapFieldName(String owner, String name, String descriptor) {
-                    if (name.startsWith("field_")) {
-                        var newName = fields.get(name);
-
-                        if (newName == null) {
-                            info.addError("No field mapping for " + name);
-                        } else {
-                            info.markChanged();
-                            info.usedMappingsOutput.useField(name);
-                            return newName;
-                        }
-                    }
-
-                    return super.mapFieldName(owner, name, descriptor);
-                }
-            };
-        }
-
-        @Override
         public void reload() {
             clear();
 
@@ -241,11 +238,6 @@ public abstract class WatheMappingsCache {
     }
 
     private static class Prod extends WatheMappingsCache {
-        @Override
-        public Remapper createRemapper(int api, ClassOutputInfo info) {
-            return null;
-        }
-
         @Override
         public void reload() {
             clear();
