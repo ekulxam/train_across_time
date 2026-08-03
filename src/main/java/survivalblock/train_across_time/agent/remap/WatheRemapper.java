@@ -20,7 +20,7 @@ import org.objectweb.asm.commons.Remapper;
 /**
  * @author Typho
  */
-@SuppressWarnings({"SwitchStatementWithTooFewBranches", "DuplicateBranchesInSwitch"})
+@SuppressWarnings({"SwitchStatementWithTooFewBranches"})
 public class WatheRemapper extends Remapper {
     public final String className;
 
@@ -29,6 +29,7 @@ public class WatheRemapper extends Remapper {
         this.className = className;
     }
 
+    // map class names (so I can ctrl+f to here quickly)
     @Override
     public String map(String internalName) {
         // WHY FABRIC WHY DID YOU STOP MAINTAINING INTERMEDIARY THATS LITERALLY AGAINST ITS WHOLE POINT - Typho
@@ -46,8 +47,11 @@ public class WatheRemapper extends Remapper {
                     case 9135 -> "net/minecraft/network/codec/ByteBufCodecs";
                     case 9129 -> "net/minecraft/network/RegistryFriendlyByteBuf";
 
+                    case 8923 -> "net/minecraft/world/level/block/TransparentBlock";
+
                     case 8710 -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload";
 
+                    case 8177 -> "net/minecraft/world/level/block/state/properties/BlockSetType";
                     case 8111 -> "net/minecraft/world/damagesource/DamageTypes";
 
                     case 8002 -> "net/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil";
@@ -63,10 +67,13 @@ public class WatheRemapper extends Remapper {
                     case 6885 -> "net/minecraft/core/HolderSet";
                     case 6880 -> "net/minecraft/core/Holder";
 
+                    case 5778 -> "net/minecraft/world/level/block/MultifaceBlock";
+
                     case 5558 -> "net/minecraft/world/level/block/entity/BlockEntityTicker";
 
                     case 5321 -> "net/minecraft/resources/ResourceKey";
 
+                    case 5275 -> "net/minecraft/world/entity/vehicle/DismountHelper";
                     case 5250 -> "net/minecraft/network/chat/MutableComponent";
 
                     case 5134 -> "net/minecraft/world/entity/ai/attributes/Attributes";
@@ -83,12 +90,15 @@ public class WatheRemapper extends Remapper {
                     case 4174 -> "net/minecraft/world/food/FoodProperties";
 
                     case 3965 -> "net/minecraft/world/phys/BlockHitResult";
+                    case 3908 -> "net/minecraft/world/MenuProvider";
 
                     case 3857 -> "net/minecraft/world/entity/projectile/throwableitemprojectile/ThrowableItemProjectile";
 
                     case 3737 -> "net/minecraft/world/level/block/SimpleWaterloggedBlock";
                     case 3726 -> "net/minecraft/world/phys/shapes/CollisionContext";
 
+                    case 3620 -> "net/minecraft/world/level/material/MapColor";
+                    case 3619 -> "net/minecraft/world/level/material/PushReaction";
                     case 3612 -> "net/minecraft/world/level/material/Fluids";
                     case 3611 -> "net/minecraft/world/level/material/Fluid";
                     case 3610 -> "net/minecraft/world/level/material/FluidState";
@@ -117,11 +127,15 @@ public class WatheRemapper extends Remapper {
 
                     case 2769 -> "net/minecraft/world/level/block/state/properties/Property";
                     case 2767 -> "net/minecraft/network/protocol/game/ClientboundSoundPacket";
+                    case 2760 -> "net/minecraft/world/level/block/state/properties/Half";
                     case 2758 -> "net/minecraft/world/level/block/state/properties/IntegerProperty";
+                    case 2756 -> "net/minecraft/world/level/block/state/properties/DoubleBlockHalf";
                     case 2754 -> "net/minecraft/world/level/block/state/properties/EnumProperty";
                     case 2753 -> "net/minecraft/world/level/block/state/properties/EnumProperty"; // This might cause some problems, since DirectionProperty was removed
                     case 2746 -> "net/minecraft/world/level/block/state/properties/BooleanProperty";
+                    case 2742 -> "net/minecraft/world/level/block/state/properties/BedPart";
                     case 2741 -> "net/minecraft/world/level/block/state/properties/BlockStateProperties";
+                    case 2738 -> "net/minecraft/world/level/block/state/properties/AttachFace";
 
                     case 2689 -> "net/minecraft/world/level/block/state/StateDefinition";
                     case 2680 -> "net/minecraft/world/level/block/state/BlockState";
@@ -132,41 +146,61 @@ public class WatheRemapper extends Remapper {
                     case 2591 -> "net/minecraft/world/level/block/entity/BlockEntityType";
                     case 2586 -> "net/minecraft/world/level/block/entity/BlockEntity";
                     case 2561 -> "net/minecraft/network/chat/Component";
+                    case 2544 -> "net/minecraft/world/level/block/WallBlock";
                     case 2540 -> "net/minecraft/network/FriendlyByteBuf";
                     case 2520 -> "net/minecraft/nbt/Tag";
+                    case 2512 -> "net/minecraft/nbt/NbtUtils";
+                    case 2510 -> "net/minecraft/world/level/block/StairBlock";
+                    case 2506 -> "net/minecraft/world/level/block/StainedGlassBlock";
 
                     case 2499 -> "net/minecraft/nbt/ListTag";
                     case 2498 -> "net/minecraft/world/level/block/SoundType";
                     case 2487 -> "net/minecraft/nbt/CompoundTag";
+                    case 2482 -> "net/minecraft/world/level/block/SlabBlock";
                     case 2470 -> "net/minecraft/world/level/block/Rotation";
+                    case 2465 -> "net/minecraft/world/level/block/RotatedPillarBlock";
                     case 2464 -> "net/minecraft/world/level/block/RenderShape";
+                    case 2429 -> "net/minecraft/world/level/block/PipeBlock";
                     case 2415 -> "net/minecraft/world/level/block/Mirror";
 
+                    case 2399 -> "net/minecraft/world/level/block/LadderBlock";
                     case 2394 -> "net/minecraft/core/particles/ParticleOptions";
+                    case 2383 -> "net/minecraft/world/level/block/HorizontalDirectionalBlock";
                     case 2382 -> "net/minecraft/core/Vec3i";
+                    case 2381 -> "net/minecraft/world/level/block/HugeMushroomBlock";
                     case 2378 -> "net/minecraft/core/Registry";
                     case 2374 -> "net/minecraft/core/Position";
+                    case 2366 -> "net/minecraft/world/level/block/GlazedTerracottaBlock";
                     case 2350 -> "net/minecraft/core/Direction";
+                    case 2341 -> "net/minecraft/world/level/block/FaceAttachedHorizontalDirectionalBlock";
                     case 2338 -> "net/minecraft/core/BlockPos";
+                    case 2323 -> "net/minecraft/world/level/block/DoorBlock";
+                    case 2318 -> "net/minecraft/world/level/block/DirectionalBlock";
                     case 2314 -> "net/minecraft/commands/synchronization/ArgumentTypeInfo";
 
+                    case 2269 -> "net/minecraft/world/level/block/ButtonBlock";
                     case 2248 -> "net/minecraft/world/level/block/Block";
+                    case 2244 -> "net/minecraft/world/level/block/BedBlock";
                     case 2246 -> "net/minecraft/world/level/block/Blocks";
                     case 2237 -> "net/minecraft/world/level/block/BaseEntityBlock";
 
                     case 2168 -> "net/minecraft/commands/CommandSourceStack";
 
+                    case 1941 -> "net/minecraft/world/level/CollisionGetter";
                     case 1937 -> "net/minecraft/world/level/Level";
                     case 1936 -> "net/minecraft/world/level/LevelAccessor";
                     case 1935 -> "net/minecraft/world/level/ItemLike";
                     case 1922 -> "net/minecraft/world/level/BlockGetter";
 
+                    case 1836 -> "net/minecraft/world/item/TooltipFlag";
                     case 1834 -> "net/minecraft/world/item/Tiers";
                     case 1832 -> "net/minecraft/world/item/Tier";
+                    case 1814 -> "net/minecraft/world/item/Rarity";
                     case 1802 -> "net/minecraft/world/item/Items";
 
                     case 1799 -> "net/minecraft/world/item/ItemStack";
                     case 1792 -> "net/minecraft/world/item/Item";
+                    case 1767 -> "net/minecraft/world/item/DyeColor";
                     case 1761 -> "net/minecraft/world/item/CreativeModeTab";
                     case 1750 -> "net/minecraft/world/item/context/BlockPlaceContext";
                     case 1747 -> "net/minecraft/world/item/BlockItem";
@@ -190,6 +224,7 @@ public class WatheRemapper extends Remapper {
                     case 1297 -> "net/minecraft/world/entity/Entity";
                     case 1282 -> "net/minecraft/world/damagesource/DamageSource";
                     case 1269 -> "net/minecraft/world/InteractionResult";
+                    case 1268 -> "net/minecraft/world/InteractionHand";
                     case 1263 -> "net/minecraft/world/Container";
 
                     case 1049 -> "net/minecraft/client/renderer/texture/SimpleTexture";
@@ -228,10 +263,14 @@ public class WatheRemapper extends Remapper {
 
                     case 269 -> "net/minecraft/world/scores/Scoreboard";
                     case 265 -> "net/minecraft/world/phys/shapes/VoxelShape";
+                    case 259 -> "net/minecraft/world/phys/shapes/Shapes";
                     case 243 -> "net/minecraft/world/phys/Vec3";
+                    case 238 -> "net/minecraft/world/phys/AABB";
 
                     case 156 -> "net/minecraft/util/Util";
                     case 124 -> "net/minecraft/ChatFormatting";
+
+                    case 10 -> "net/minecraft/world/level/pathfinder/PathComputationType";
 
                     default -> internalName;
                 };
@@ -254,8 +293,10 @@ public class WatheRemapper extends Remapper {
                     case "net/minecraft/class_2689$class_2690" -> "net/minecraft/world/level/block/state/StateDefinition$Builder";
                     case "net/minecraft/class_2591$class_5559" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder$Factory";
                     case "net/minecraft/class_2591$class_2592" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder";
+                    case "net/minecraft/class_2350$2351" -> "net/minecraft/core/Direction$Axis";
                     case "net/minecraft/class_2338$class_2339" -> "net/minecraft/core/BlockPos$MutableBlockPos";
 
+                    case "net/minecraft/class_1792$class_9635" -> "net/minecraft/world/item/Item$TooltipContext";
                     case "net/minecraft/class_1792$class_1793" -> "net/minecraft/world/item/Item$Properties";
                     case "net/minecraft/class_1738$class_8051" -> "net/minecraft/world/item/ArmorItem$Type";
                     case "net/minecraft/class_1299$class_4049" -> "net/minecraft/world/entity/EntityType$EntityFactory";
@@ -290,6 +331,8 @@ public class WatheRemapper extends Remapper {
         return internalName;
     }
 
+    // map method names (ctrl+f)
+    @SuppressWarnings({"DuplicateBranchesInSwitch", "RedundantSuppression"})
     @Override
     public String mapMethodName(String owner, String name, String descriptor) {
         name = switch (owner) {
@@ -428,6 +471,7 @@ public class WatheRemapper extends Remapper {
                     case 10123 -> "newBlockEntity";
                     case 10074 -> "below";
 
+                    case 9637 -> "of";
                     case 9630 -> "ofFullCopy";
                     case 9606 -> "attack";
                     case 9605 -> "getStateForPlacement";
@@ -530,6 +574,7 @@ public class WatheRemapper extends Remapper {
         return methodDescriptor;
     }
 
+    // map field names (ctrl+f)
     @Override
     public String mapFieldName(String owner, String name, String descriptor) {
         if (name.startsWith("field_")) {
@@ -574,6 +619,7 @@ public class WatheRemapper extends Remapper {
                     case 12481 -> "HORIZONTAL_FACING";
                     case 11867 -> "worldPosition";
                     case 11863 -> "level";
+                    case 10595 -> "WHITE_GLAZED_TERRACOTTA";
                     case 10446 -> "WHITE_WOOL";
                     case 10423 -> "GRAY_WOOL";
                     case 10215 -> "MAGENTA_WOOL";
