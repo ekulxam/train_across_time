@@ -22,8 +22,10 @@ import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.*;
 public class TheTrainAcrossTimeMassAsm implements Runnable {
     @Override
     public void run() {
+        /*
         MassASMTransformer.registerNodeTransformer(id("guigraphicsextractor"), className -> className.startsWith("dev.doctor4t.wathe"), (className, node) -> {
             return false;
         });
+         */
     }
 }

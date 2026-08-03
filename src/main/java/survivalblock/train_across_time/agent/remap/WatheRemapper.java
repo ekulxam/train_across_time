@@ -22,11 +22,11 @@ import org.objectweb.asm.commons.Remapper;
  */
 @SuppressWarnings("SwitchStatementWithTooFewBranches")
 public class WatheRemapper extends Remapper {
-    public final String cls;
+    public final String className;
 
-    public WatheRemapper(int api, String cls) {
+    public WatheRemapper(int api, String className) {
         super(api);
-        this.cls = cls;
+        this.className = className;
     }
 
     @Override
@@ -203,7 +203,7 @@ public class WatheRemapper extends Remapper {
             default -> internalName;
         };
 
-        internalName = switch (cls) {
+        internalName = switch (this.className) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (internalName) {
                 case "net/minecraft/world/item/Tiers" -> "net/minecraft/world/item/ToolMaterial";
                 default -> internalName;
@@ -291,13 +291,14 @@ public class WatheRemapper extends Remapper {
             case "method_8037" -> "getClickedPos";
 
             case "method_7889" -> "stacksTo";
+            case "method_7854" -> "getDefaultInstance";
 
             case "method_654" -> "make";
 
             default -> name;
         };
 
-        name = switch (cls) {
+        name = switch (this.className) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (name) {
                 case "attributes" -> "axe";
                 default -> name;
@@ -312,7 +313,7 @@ public class WatheRemapper extends Remapper {
     public String mapMethodDesc(String methodDescriptor) {
         methodDescriptor = super.mapMethodDesc(methodDescriptor);
 
-        methodDescriptor = switch (cls) {
+        methodDescriptor = switch (this.className) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (methodDescriptor) {
                 case "(Lnet/minecraft/world/item/component/ItemAttributeModifiers;)Lnet/minecraft/world/item/Item$Properties;" -> "(Lnet/minecraft/world/item/ToolMaterial;FF)Lnet/minecraft/world/item/Item$Properties;";
                 default -> methodDescriptor;

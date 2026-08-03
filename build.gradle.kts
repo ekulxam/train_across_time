@@ -40,6 +40,7 @@ modstitch {
         configureLoom {
             runs.configureEach {
                 vmArg("-Dfabric.debug.disableClassPathIsolation=true")
+                ideConfigGenerated(true)
             }
         }
     }

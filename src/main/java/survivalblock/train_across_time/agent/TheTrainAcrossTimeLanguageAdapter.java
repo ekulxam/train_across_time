@@ -75,8 +75,10 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
 
                     if (debugPath != null) {
                         var path = debugPath.resolve(className + ".class");
-                        path.getParent().toFile().mkdirs();
-                        Files.write(path, bytes);
+                        var folder = path.getParent().toFile();
+                        if (folder.mkdirs() || folder.exists()) {
+                            Files.write(path, bytes);
+                        }
                     }
 
                     return bytes;
