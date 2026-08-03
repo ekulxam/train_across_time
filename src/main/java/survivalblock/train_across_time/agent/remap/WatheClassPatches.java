@@ -362,13 +362,33 @@ public class WatheClassPatches {
             }
         });
         register("dev/doctor4t/wathe/game/GameConstants", node -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.contains("lambda$static") && method.desc.contains("Ljava/util/ArrayList")) {
-                    for (var instruction : method.instructions) {
-                        if (instruction instanceof MethodInsnNode methodInsn && methodInsn.owner.equals("net/minecraft/world/item/ItemStack") && methodInsn.name.equals("<init>")) {
-                            methodInsn.owner = "net/minecraft/world/item/ItemStackTemplate";
-                            methodInsn.desc = methodInsn.desc.replace("Lnet/minecraft/world/level/ItemLike", "Lnet/minecraft/world/item/Item");
+            for (MethodNode methodNode : node.methods) {
+                if (methodNode.name.contains("lambda$static") && methodNode.desc.contains("Ljava/util/ArrayList")) {
+                    List<MethodInsnNode> getDefaultInstanceNodes = new ArrayList<>();
+                    for (var instruction : methodNode.instructions) {
+                        if (instruction instanceof TypeInsnNode typeInsnNode) {
+                            typeInsnNode.desc = typeInsnNode.desc.replace("net/minecraft/world/item/ItemStack", "net/minecraft/world/item/ItemStackTemplate");
+                        } else if (instruction instanceof MethodInsnNode methodInsn) {
+                            if (methodInsn.owner.equals("net/minecraft/world/item/Item") && methodInsn.name.equals("getDefaultInstance")) {
+                                getDefaultInstanceNodes.add(methodInsn);
+                            }
+                            if (methodInsn.owner.equals("net/minecraft/world/item/ItemStack") && methodInsn.name.equals("<init>")) {
+                                methodInsn.owner = "net/minecraft/world/item/ItemStackTemplate";
+                                methodInsn.desc = methodInsn.desc.replace("Lnet/minecraft/world/level/ItemLike", "Lnet/minecraft/world/item/Item");
+                            }
                         }
+                    }
+                    for (var methodInsn : getDefaultInstanceNodes) {
+                        MethodInsnNode ctor = new MethodInsnNode(
+                                Opcodes.INVOKESPECIAL,
+                                "net/minecraft/world/item/ItemStackTemplate",
+                                "<init>",
+                                "(Lnet/minecraft/world/item/Item;)V"
+                        );
+
+                        methodNode.instructions.insertBefore(methodInsn, new TypeInsnNode(Opcodes.NEW, "net/minecraft/world/item/ItemStackTemplate"));
+                        methodNode.instructions.insertBefore(methodInsn, new InsnNode(Opcodes.DUP));
+                        methodNode.instructions.set(methodInsn, ctor);
                     }
                 }
             }
