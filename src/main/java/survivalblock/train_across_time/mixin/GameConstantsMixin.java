@@ -16,7 +16,7 @@ public interface GameConstantsMixin {
         TrainAcrossTime.SHOP_ENTRIES_INITIALIZER.set(() -> consumer.accept(o));
         return original.call(
                 o,
-                (Consumer<Object>) o1 -> {}
+                (Consumer<Object>) _ -> {}
         );
     }
 }
