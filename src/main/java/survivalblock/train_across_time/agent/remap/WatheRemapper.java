@@ -58,6 +58,10 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/class_7225" -> "net/minecraft/core/HolderLookup";
             case "net/minecraft/class_7225$class_7874" -> "net/minecraft/core/HolderLookup$Provider";
 
+            case "net/minecraft/class_6885" -> "net/minecraft/core/HolderSet";
+            case "net/minecraft/class_6885$class_6887" -> "net/minecraft/core/HolderSet$ListBacked";
+            case "net/minecraft/class_6880" -> "net/minecraft/core/Holder";
+
             case "net/minecraft/class_5558" -> "net/minecraft/world/level/block/entity/BlockEntityTicker";
 
             case "net/minecraft/class_5321" -> "net/minecraft/resources/ResourceKey";
@@ -102,6 +106,7 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/class_2960" -> "net/minecraft/resources/Identifier";
 
             case "net/minecraft/class_2769" -> "net/minecraft/world/level/block/state/properties/Property";
+            case "net/minecraft/class_2767" -> "net/minecraft/network/protocol/game/ClientboundSoundPacket";
             case "net/minecraft/class_2758" -> "net/minecraft/world/level/block/state/properties/IntegerProperty";
             case "net/minecraft/class_2754" -> "net/minecraft/world/level/block/state/properties/EnumProperty";
             case "net/minecraft/class_2753" -> "net/minecraft/world/level/block/state/properties/EnumProperty"; // This might cause some problems, since DirectionProperty was removed
@@ -121,6 +126,7 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/class_2540" -> "net/minecraft/network/FriendlyByteBuf";
             case "net/minecraft/class_2520" -> "net/minecraft/nbt/Tag";
 
+            case "net/minecraft/class_2499" -> "net/minecraft/nbt/ListTag";
             case "net/minecraft/class_2487" -> "net/minecraft/nbt/CompoundTag";
             case "net/minecraft/class_2470" -> "net/minecraft/world/level/block/Rotation";
             case "net/minecraft/class_2464" -> "net/minecraft/world/level/block/RenderShape";
@@ -209,6 +215,7 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/class_243" -> "net/minecraft/world/phys/Vec3";
 
             case "net/minecraft/class_156" -> "net/minecraft/util/Util";
+            case "net/minecraft/class_124" -> "net/minecraft/ChatFormatting";
 
             default -> internalName;
         };
@@ -240,39 +247,67 @@ public class WatheRemapper extends Remapper {
         name = switch (name) {
             case "method_60655" -> "fromNamespaceAndPath";
 
+            case "method_59922" -> "getRandom";
+            case "method_57379" -> "set";
             case "method_57348" -> "attributes";
             case "method_57346" -> "createAttributes";
             case "method_56690" -> "getDurability";
+            case "method_56673" -> "registryAccess";
             case "method_56438" -> "ofMember";
             case "method_55766" -> "useWithoutItem";
             case "method_54094" -> "simpleCodec";
             case "method_53969" -> "codec";
 
+            case "method_47983" -> "wrapAsHolder";
+            case "method_46758" -> "asGetterLookup";
+            case "method_46751" -> "lookupOrThrow";
+            case "method_46733" -> "get";
             case "method_45421" -> "accept";
             case "method_45420" -> "accept";
+            case "method_43470" -> "literal";
             case "method_43128" -> "playSound";
             case "method_43057" -> "nextFloat";
+            case "method_43055" -> "nextLong";
+            case "method_43048" -> "nextInt";
+            case "method_40239" -> "stream";
 
             case "method_39360" -> "is";
             case "method_39281" -> "scheduleTick";
             case "method_38585" -> "create";
             case "method_38244" -> "saveWithoutMetadata";
             case "method_38235" -> "getUpdatePacket";
+            case "method_37908" -> "level";
             case "method_33614" -> "spawnDestroyParticles";
+            case "method_32309" -> "getRandom";
             case "method_31645" -> "getTicker";
             case "method_31618" -> "createTickerHelper";
+            case "method_31574" -> "is";
+            case "method_31548" -> "getInventory";
 
+            case "method_29281" -> "getCraftSlots";
+            case "method_29280" -> "clearOrCountMatchingItems";
             case "method_29179" -> "create";
             case "method_28498" -> "hasProperty";
+            case "method_27692" -> "withStyle";
             case "method_26204" -> "getBlock";
             case "method_26186" -> "rotate";
+            case "method_25927" -> "putUUID";
+            case "method_25926" -> "getUUID";
             case "method_24953" -> "atCenterOf";
+            case "method_23317" -> "getX";
+            case "method_23318" -> "getY";
+            case "method_23321" -> "getZ";
             case "method_22488" -> "noOcclusion";
 
             case "method_19265" -> "food";
+            case "method_18470" -> "getPlayerByUUID";
+            case "method_18456" -> "players";
+            case "method_17356" -> "playNotifySound";
             case "method_16887" -> "getUpdateTag";
             case "method_15789" -> "getTickDelay";
             case "method_15729" -> "getSource";
+            case "method_15441" -> "getB";
+            case "method_14364" -> "send";
             case "method_12832" -> "getPath";
             case "method_11667" -> "add";
             case "method_11657" -> "setValue";
@@ -280,8 +315,20 @@ public class WatheRemapper extends Remapper {
             case "method_11014" -> "loadAdditional";
             case "method_11010" -> "getBlockState";
             case "method_11007" -> "saveAdditional";
+            case "method_10583" -> "getFloat";
+            case "method_10582" -> "putString";
+            case "method_10577" -> "getBoolean";
             case "method_10574" -> "getDouble";
+            case "method_10573" -> "contains";
+            case "method_10569" -> "putInt";
+            case "method_10566" -> "put";
+            case "method_10558" -> "getString";
+            case "method_10556" -> "putBoolean";
+            case "method_10554" -> "getList";
+            case "method_10550" -> "getInt";
             case "method_10549" -> "putDouble";
+            case "method_10548" -> "putFloat";
+            case "method_10545" -> "contains";
             case "method_10503" -> "rotate";
             case "method_10345" -> "getRotation";
             case "method_10230" -> "register";
@@ -307,6 +354,7 @@ public class WatheRemapper extends Remapper {
             case "method_9515" -> "createBlockStateDefinition";
 
             case "method_8413" -> "sendBlockUpdated";
+            case "method_8409" -> "getRandom";
             case "method_8321" -> "getBlockEntity";
             case "method_8320" -> "getBlockState";
             case "method_8316" -> "getFluidState";
@@ -314,13 +362,24 @@ public class WatheRemapper extends Remapper {
             case "method_8042" -> "getHorizontalDirection";
             case "method_8037" -> "getClickedPos";
 
+            case "method_7909" -> "getItem";
+            case "method_7904" -> "isOnCooldown";
             case "method_7895" -> "durability";
             case "method_7889" -> "stacksTo";
             case "method_7854" -> "getDefaultInstance";
+            case "method_7357" -> "getCooldowns";
+            case "method_7353" -> "displayClientMessage";
 
+            case "method_6047" -> "getMainHandItem";
+
+            case "method_5845" -> "getStringUUID";
+            case "method_5667" -> "getUUID";
+            case "method_5438" -> "getItem";
             case "method_5431" -> "setChanged";
 
             case "method_654" -> "make";
+            case "comp_349" -> "value";
+            case "comp_327" -> "identifier";
 
             default -> name;
         };
@@ -360,18 +419,24 @@ public class WatheRemapper extends Remapper {
             case "field_41935" -> "CHESTPLATE";
             case "field_41936" -> "LEGGINGS";
             case "field_41937" -> "BOOTS";
+            case "field_41197" -> "ITEM";
             case "field_41178" -> "ITEM";
             case "field_41175" -> "BLOCK";
+            case "field_41172" -> "SOUND_EVENT";
             case "field_40202" -> "COMBAT";
             case "field_40197" -> "FUNCTIONAL_BLOCKS";
+
+            case "field_38068" -> "WARDEN_HEARTBEAT";
 
             case "field_25139" -> "CODEC";
             case "field_22030" -> "NETHERITE_BOOTS";
             case "field_20381" -> "HONEY_BOTTLE";
 
             case "field_15910" -> "WATER";
+            case "field_15248" -> "PLAYERS";
             case "field_15245" -> "BLOCKS";
             case "field_14628" -> "WOOL_HIT";
+            case "field_13987" -> "connection";
             case "field_12524" -> "NOTE";
             case "field_12508" -> "WATERLOGGED";
             case "field_12481" -> "HORIZONTAL_FACING";
@@ -386,7 +451,12 @@ public class WatheRemapper extends Remapper {
 
             case "field_8922" -> "WOOD";
 
+            case "field_7545" -> "selected";
+            case "field_7498" -> "inventoryMenu";
+
             case "field_5812" -> "SUCCESS";
+
+            case "field_1079" -> "DARK_RED";
 
             default -> name;
         };
