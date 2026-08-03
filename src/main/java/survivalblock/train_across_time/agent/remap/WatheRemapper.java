@@ -228,13 +228,17 @@ public class WatheRemapper extends Remapper {
                 };
             } catch (NumberFormatException ignored) {
             }
+        } else {
+            internalName = switch (internalName) {
+                case "org/ladysnake/cca/api/v3/world/WorldComponentInitializer" -> "org/ladysnake/cca/api/v3/level/LevelComponentInitializer";
+
+                case "net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents" -> "net/fabricmc/fabric/api/creativetab/v1/CreativeModeTabEvents";
+                case "net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents$ModifyEntries" -> "net/fabricmc/fabric/api/creativetab/v1/CreativeModeTabEvents$ModifyOutput";
+                case "net/fabricmc/fabric/api/itemgroup/v1/FabricItemGroupEntries" -> "net/fabricmc/fabric/api/creativetab/v1/FabricCreativeModeTabOutput";
+
+                default -> internalName;
+            };
         }
-
-        internalName = switch (internalName) {
-            case "org/ladysnake/cca/api/v3/world/WorldComponentInitializer" -> "org/ladysnake/cca/api/v3/level/LevelComponentInitializer";
-
-            default -> internalName;
-        };
 
         internalName = switch (this.className) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (internalName) {
@@ -257,6 +261,11 @@ public class WatheRemapper extends Remapper {
                 case "configurationS2C" -> "clientboundConfiguration";
                 case "playC2S" -> "serverboundPlay";
                 case "playS2C" -> "clientboundPlay";
+
+                default -> name;
+            };
+            case "net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents" -> switch (name) {
+                case "modifyEntriesEvent" -> "modifyOutputEvent";
 
                 default -> name;
             };
@@ -466,6 +475,7 @@ public class WatheRemapper extends Remapper {
                     case 41936 -> "LEGGINGS";
                     case 41937 -> "BOOTS";
                     case 41197 -> "ITEM";
+                    case 41181 -> "BLOCK_ENTITY_TYPE";
                     case 41178 -> "ITEM";
                     case 41175 -> "BLOCK";
                     case 41172 -> "SOUND_EVENT";
