@@ -111,6 +111,8 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/class_2689" -> "net/minecraft/world/level/block/state/StateDefinition";
             case "net/minecraft/class_2689$class_2690" -> "net/minecraft/world/level/block/state/StateDefinition$Builder";
             case "net/minecraft/class_2680" -> "net/minecraft/world/level/block/state/BlockState";
+            case "net/minecraft/class_2622" -> "net/minecraft/network/protocol/game/ClientboundBlockEntityDataPacket";
+            case "net/minecraft/class_2602" -> "net/minecraft/network/protocol/game/ClientGamePacketListener";
 
             case "net/minecraft/class_2596" -> "net/minecraft/network/protocol/Packet";
             case "net/minecraft/class_2591" -> "net/minecraft/world/level/block/entity/BlockEntityType";
@@ -119,6 +121,7 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/class_2540" -> "net/minecraft/network/FriendlyByteBuf";
             case "net/minecraft/class_2520" -> "net/minecraft/nbt/Tag";
 
+            case "net/minecraft/class_2487" -> "net/minecraft/nbt/CompoundTag";
             case "net/minecraft/class_2470" -> "net/minecraft/world/level/block/Rotation";
             case "net/minecraft/class_2464" -> "net/minecraft/world/level/block/RenderShape";
             case "net/minecraft/class_2415" -> "net/minecraft/world/level/block/Mirror";
@@ -246,11 +249,15 @@ public class WatheRemapper extends Remapper {
             case "method_53969" -> "codec";
 
             case "method_45421" -> "accept";
+            case "method_45420" -> "accept";
             case "method_43128" -> "playSound";
             case "method_43057" -> "nextFloat";
 
             case "method_39360" -> "is";
             case "method_39281" -> "scheduleTick";
+            case "method_38585" -> "create";
+            case "method_38244" -> "saveWithoutMetadata";
+            case "method_38235" -> "getUpdatePacket";
             case "method_33614" -> "spawnDestroyParticles";
             case "method_31645" -> "getTicker";
             case "method_31618" -> "createTickerHelper";
@@ -263,12 +270,18 @@ public class WatheRemapper extends Remapper {
             case "method_22488" -> "noOcclusion";
 
             case "method_19265" -> "food";
+            case "method_16887" -> "getUpdateTag";
             case "method_15789" -> "getTickDelay";
             case "method_15729" -> "getSource";
             case "method_12832" -> "getPath";
             case "method_11667" -> "add";
             case "method_11657" -> "setValue";
             case "method_11654" -> "getValue";
+            case "method_11014" -> "loadAdditional";
+            case "method_11010" -> "getBlockState";
+            case "method_11007" -> "saveAdditional";
+            case "method_10574" -> "getDouble";
+            case "method_10549" -> "putDouble";
             case "method_10503" -> "rotate";
             case "method_10345" -> "getRotation";
             case "method_10230" -> "register";
@@ -293,6 +306,7 @@ public class WatheRemapper extends Remapper {
             case "method_9526" -> "useShapeForLightOcclusion";
             case "method_9515" -> "createBlockStateDefinition";
 
+            case "method_8413" -> "sendBlockUpdated";
             case "method_8321" -> "getBlockEntity";
             case "method_8320" -> "getBlockState";
             case "method_8316" -> "getFluidState";
@@ -303,6 +317,8 @@ public class WatheRemapper extends Remapper {
             case "method_7895" -> "durability";
             case "method_7889" -> "stacksTo";
             case "method_7854" -> "getDefaultInstance";
+
+            case "method_5431" -> "setChanged";
 
             case "method_654" -> "make";
 
@@ -359,6 +375,8 @@ public class WatheRemapper extends Remapper {
             case "field_12524" -> "NOTE";
             case "field_12508" -> "WATERLOGGED";
             case "field_12481" -> "HORIZONTAL_FACING";
+            case "field_11867" -> "worldPosition";
+            case "field_11863" -> "level";
             case "field_10446" -> "WHITE_WOOL";
             case "field_10423" -> "GRAY_WOOL";
             case "field_10215" -> "MAGENTA_WOOL";
