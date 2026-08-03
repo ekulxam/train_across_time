@@ -46,13 +46,17 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/class_8710$class_9155" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$TypeAndCodec";
             case "net/minecraft/class_8710$class_9154" -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload$Type";
 
+            case "net/minecraft/class_1738$class_8051" -> "net/minecraft/world/item/ArmorItem$Type";
             case "net/minecraft/class_8002" -> "net/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil";
 
             case "net/minecraft/class_7924" -> "net/minecraft/core/registries/Registries";
             case "net/minecraft/class_7923" -> "net/minecraft/core/registries/BuiltInRegistries";
             case "net/minecraft/class_7922" -> "net/minecraft/core/DefaultedRegistry";
 
+            case "net/minecraft/class_7706" -> "net/minecraft/world/item/CreativeModeTabs";
+
             case "net/minecraft/class_7225" -> "net/minecraft/core/HolderLookup";
+            case "net/minecraft/class_7225$class_7874" -> "net/minecraft/core/HolderLookup$Provider";
 
             case "net/minecraft/class_5558" -> "net/minecraft/world/level/block/entity/BlockEntityTicker";
 
@@ -138,6 +142,7 @@ public class WatheRemapper extends Remapper {
 
             case "net/minecraft/class_1834" -> "net/minecraft/world/item/Tiers";
             case "net/minecraft/class_1832" -> "net/minecraft/world/item/Tier";
+            case "net/minecraft/class_1802" -> "net/minecraft/world/item/Items";
 
             case "net/minecraft/class_1799" -> "net/minecraft/world/item/ItemStack";
             case "net/minecraft/class_1792" -> "net/minecraft/world/item/Item";
@@ -146,6 +151,8 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/class_1750" -> "net/minecraft/world/item/context/BlockPlaceContext";
             case "net/minecraft/class_1747" -> "net/minecraft/world/item/BlockItem";
             case "net/minecraft/class_1743" -> "net/minecraft/world/item/AxeItem";
+            case "net/minecraft/class_1740" -> "net/minecraft/world/item/ArmorMaterials";
+            case "net/minecraft/class_1738" -> "net/minecraft/world/item/ArmorItem";
             case "net/minecraft/class_1702" -> "net/minecraft/world/food/FoodData";
 
             case "net/minecraft/class_1661" -> "net/minecraft/world/entity/player/Inventory";
@@ -232,11 +239,13 @@ public class WatheRemapper extends Remapper {
 
             case "method_57348" -> "attributes";
             case "method_57346" -> "createAttributes";
+            case "method_56690" -> "getDurability";
             case "method_56438" -> "ofMember";
             case "method_55766" -> "useWithoutItem";
             case "method_54094" -> "simpleCodec";
             case "method_53969" -> "codec";
 
+            case "method_45421" -> "accept";
             case "method_43128" -> "playSound";
             case "method_43057" -> "nextFloat";
 
@@ -262,6 +271,7 @@ public class WatheRemapper extends Remapper {
             case "method_11654" -> "getValue";
             case "method_10503" -> "rotate";
             case "method_10345" -> "getRotation";
+            case "method_10230" -> "register";
             case "method_10216" -> "x";
             case "method_10215" -> "z";
             case "method_10214" -> "y";
@@ -290,6 +300,7 @@ public class WatheRemapper extends Remapper {
             case "method_8042" -> "getHorizontalDirection";
             case "method_8037" -> "getClickedPos";
 
+            case "method_7895" -> "durability";
             case "method_7889" -> "stacksTo";
             case "method_7854" -> "getDefaultInstance";
 
@@ -327,11 +338,19 @@ public class WatheRemapper extends Remapper {
     @Override
     public String mapFieldName(String owner, String name, String descriptor) {
         return switch (name) {
+            case "field_48846" -> "ARMADILLO";
             case "field_44688" -> "CREATIVE_MODE_TAB";
+            case "field_41934" -> "HELMET";
+            case "field_41935" -> "CHESTPLATE";
+            case "field_41936" -> "LEGGINGS";
+            case "field_41937" -> "BOOTS";
             case "field_41178" -> "ITEM";
             case "field_41175" -> "BLOCK";
+            case "field_40202" -> "COMBAT";
+            case "field_40197" -> "FUNCTIONAL_BLOCKS";
 
             case "field_25139" -> "CODEC";
+            case "field_22030" -> "NETHERITE_BOOTS";
             case "field_20381" -> "HONEY_BOTTLE";
 
             case "field_15910" -> "WATER";
