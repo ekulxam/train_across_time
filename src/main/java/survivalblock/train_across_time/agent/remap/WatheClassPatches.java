@@ -399,6 +399,46 @@ public class WatheClassPatches {
                     Log.info(LOGGER, "Injecting block ids into WatheBlocks");
                     applyBlockIds(method, Map.of());
                     info.computeMaxStackSizes();
+                } else if (method.name.equals("createBranch")) {
+                    method.instructions.forEach(n -> {
+                        if (n instanceof MethodInsnNode insn) {
+                            if (insn.name.equals("of") || insn.name.equals("ofFullCopy") || insn.name.equals("ofLegacyCopy")) {
+                                switch (insn.owner) {
+                                    case "net/minecraft/world/level/block/state/BlockBehaviour$Properties" -> {
+                                        InsnList insns = new InsnList();
+                                        insns.add(new FieldInsnNode(
+                                                Opcodes.GETSTATIC,
+                                                "net/minecraft/core/registries/Registries",
+                                                "BLOCK",
+                                                "Lnet/minecraft/resources/ResourceKey;"
+                                        ));
+                                        insns.add(new LdcInsnNode("wathe"));
+                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                        insns.add(new MethodInsnNode(
+                                                Opcodes.INVOKESTATIC,
+                                                "net/minecraft/resources/Identifier",
+                                                "fromNamespaceAndPath",
+                                                "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;"
+                                        ));
+                                        insns.add(new MethodInsnNode(
+                                                Opcodes.INVOKESTATIC,
+                                                "net/minecraft/resources/ResourceKey",
+                                                "create",
+                                                "(Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;"
+                                        ));
+                                        insns.add(new MethodInsnNode(
+                                                Opcodes.INVOKEVIRTUAL,
+                                                "net/minecraft/world/level/block/state/BlockBehaviour$Properties",
+                                                "setId",
+                                                "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;"
+                                        ));
+                                        method.instructions.insert(n, insns);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    info.computeMaxStackSizes();
                 }
             }
         });
@@ -501,7 +541,7 @@ public class WatheClassPatches {
                 "dev/doctor4t/wathe/item/KnifeItem",
                 "dev/doctor4t/wathe/item/NoteItem",
                 "dev/doctor4t/wathe/item/RevolverItem"
-        ), node -> {
+        ), (node, info) -> {
             for (MethodNode methodNode : node.methods) {
                 // WHY IS KNIFEITEM STILL NOT WORKING
                 methodNode.desc = methodNode.desc.replace("Lnet/minecraft/world/InteractionResultHolder<Lnet/minecraft/world/item/ItemStack;>", "Lnet/minecraft/world/InteractionResult;");

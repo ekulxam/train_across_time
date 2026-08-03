@@ -90,6 +90,11 @@ public class WatheRemapper extends Remapper {
 
                 default -> name;
             };
+            case "net/minecraft/world/level/block/state/BlockBehaviour$Properties" -> switch (name) {
+                case "noCollission" -> "noCollision";
+
+                default -> name;
+            };
 
             default -> name;
         };
@@ -134,5 +139,26 @@ public class WatheRemapper extends Remapper {
         }
 
         return methodDescriptor;
+    }
+
+    @Override
+    public String mapFieldName(String owner, String name, String descriptor) {
+        var original = name;
+
+        name = switch (owner) {
+            case "net/minecraft/world/level/block/Blocks" -> switch (name) {
+                case "CHAIN" -> "IRON_CHAIN";
+
+                default -> name;
+            };
+
+            default -> name;
+        };
+
+        if (!original.equals(name)) {
+            info.markChanged();
+        }
+
+        return name;
     }
 }
