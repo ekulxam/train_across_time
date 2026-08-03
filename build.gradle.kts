@@ -40,6 +40,7 @@ modstitch {
         configureLoom {
             runs.configureEach {
                 vmArg("-Dfabric.debug.disableClassPathIsolation=true")
+                vmArg("-Dtrain_across_time:mappings_output_file=${rootProject.file("src/main/resources/mappings.bin").absolutePath}")
                 ideConfigGenerated(true)
             }
         }
@@ -107,6 +108,8 @@ dependencies {
     modstitchModImplementation("maven.modrinth:iris:1.11.2+26.1-fabric")
 
     include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
+
+    implementation("net.fabricmc:tiny-remapper:0.14.0")
 
     // if needed
     //include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.3")))

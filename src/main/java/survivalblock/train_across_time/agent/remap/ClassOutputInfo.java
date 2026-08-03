@@ -7,12 +7,15 @@ import java.util.*;
 
 public class ClassOutputInfo {
     public final String className;
+    public final UsedMappingsOutput usedMappingsOutput;
+
     private boolean changed = false;
     private int writerFlags = 0;
     private final Set<String> errors = new HashSet<>();
 
-    public ClassOutputInfo(String className) {
+    public ClassOutputInfo(String className, @Nullable UsedMappingsOutput usedMappingsOutput) {
         this.className = className;
+        this.usedMappingsOutput = usedMappingsOutput == null ? UsedMappingsOutput.NONE : usedMappingsOutput;
     }
 
     public void markChanged() {
@@ -38,6 +41,39 @@ public class ClassOutputInfo {
             throw new IllegalStateException((errors.size() == 1 ? "Error" : "Errors") + " while transforming class " + className + ":\n" + String.join("\n", errors));
         }
 
-        return changed ? new ClassWriter(writerFlags) : null;
+        if (changed) {
+            if (usedMappingsOutput != null) {
+                usedMappingsOutput.endClass();
+            }
+
+            return new ClassWriter(writerFlags);
+        }
+
+        return null;
+    }
+
+    public interface UsedMappingsOutput {
+        UsedMappingsOutput NONE = new UsedMappingsOutput() {
+            @Override
+            public void useClass(String intermediary) {
+            }
+
+            @Override
+            public void useMethod(String intermediary) {
+            }
+
+            @Override
+            public void useField(String intermediary) {
+            }
+        };
+
+        void useClass(String intermediary);
+
+        void useMethod(String intermediary);
+
+        void useField(String intermediary);
+
+        default void endClass() {
+        }
     }
 }
