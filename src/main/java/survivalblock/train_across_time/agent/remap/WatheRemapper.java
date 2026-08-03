@@ -187,9 +187,13 @@ public class WatheRemapper extends Remapper {
                     case 2464 -> "net/minecraft/world/level/block/RenderShape";
                     case 2429 -> "net/minecraft/world/level/block/PipeBlock";
                     case 2415 -> "net/minecraft/world/level/block/Mirror";
+                    case 2400 -> "net/minecraft/core/particles/SimpleParticleType";
 
                     case 2399 -> "net/minecraft/world/level/block/LadderBlock";
+                    case 2398 -> "net/minecraft/core/particles/ParticleTypes";
+                    case 2396 -> "net/minecraft/core/particles/ParticleType";
                     case 2394 -> "net/minecraft/core/particles/ParticleOptions";
+                    case 2392 -> "net/minecraft/core/particles/ItemParticleOption";
                     case 2383 -> "net/minecraft/world/level/block/HorizontalDirectionalBlock";
                     case 2382 -> "net/minecraft/core/Vec3i";
                     case 2381 -> "net/minecraft/world/level/block/HugeMushroomBlock";
@@ -466,6 +470,7 @@ public class WatheRemapper extends Remapper {
                     case 43128 -> "playSound";
                     case 43057 -> "nextFloat";
                     case 43055 -> "nextLong";
+                    case 43054 -> "nextInt";
                     case 43048 -> "nextInt";
 
                     case 41999 -> "contextFree";
@@ -524,7 +529,9 @@ public class WatheRemapper extends Remapper {
                     case 25926 -> "getUUID";
 
                     case 24953 -> "atCenterOf";
+                    case 24921 -> "getOwner";
                     case 24919 -> "shootFromRotation";
+                    case 24515 -> "blockPosition";
 
                     case 23667 -> "swing";
                     case 23327 -> "setPosRaw";
@@ -543,8 +550,10 @@ public class WatheRemapper extends Remapper {
 
                     case 20287 -> "getHand";
 
+                    case 19538 -> "position";
                     case 19265 -> "food";
 
+                    case 18766 -> "getPlayers";
                     case 18470 -> "getPlayerByUUID";
                     case 18456 -> "players";
 
@@ -554,6 +563,7 @@ public class WatheRemapper extends Remapper {
                     case 17682 -> "getBbHeight";
                     case 17356 -> "playNotifySound";
 
+                    case 16942 -> "getDefaultItem";
                     case 16887 -> "getUpdateTag";
 
                     case 15789 -> "getTickDelay";
@@ -564,6 +574,7 @@ public class WatheRemapper extends Remapper {
                     case 14956 -> "get";
                     case 14546 -> "convertMobOwnerIfNecessary";
                     case 14364 -> "send";
+                    case 14199 -> "sendParticles";
 
                     case 12832 -> "getPath";
                     case 12791 -> "defineId";
@@ -607,6 +618,7 @@ public class WatheRemapper extends Remapper {
                     case 10215 -> "z";
                     case 10214 -> "y";
                     case 10153 -> "getOpposite";
+                    case 10146 -> "get3DDataValue";
                     case 10123 -> "newBlockEntity";
                     case 10103 -> "set";
                     case 10102 -> "set";
@@ -640,6 +652,7 @@ public class WatheRemapper extends Remapper {
 
                     case 8413 -> "sendBlockUpdated";
                     case 8409 -> "getRandom";
+                    case 8406 -> "addParticle";
 
                     case 8396 -> "playSound";
                     case 8321 -> "getBlockEntity";
@@ -672,6 +685,7 @@ public class WatheRemapper extends Remapper {
                     case 7840 -> "releaseUsing";
                     case 7836 -> "use";
 
+                    case 7488 -> "onHit";
                     case 7432 -> "setOwner";
 
                     case 7357 -> "getCooldowns";
@@ -695,10 +709,12 @@ public class WatheRemapper extends Remapper {
 
                     case 5883 -> "create";
                     case 5845 -> "getStringUUID";
+                    case 5829 -> "getBoundingBox";
                     case 5814 -> "setPos";
 
                     case 5791 -> "getYHeadRot";
                     case 5783 -> "playSound";
+                    case 5773 -> "tick";
                     case 5749 -> "readAdditionalSaveData";
                     case 5715 -> "isShiftKeyDown";
 
@@ -728,6 +744,8 @@ public class WatheRemapper extends Remapper {
                     case 1021 -> "scale";
                     case 1020 -> "subtract";
                     case 1019 -> "add";
+                    case 1014 -> "inflate";
+                    case 1006 -> "contains";
 
                     case 654 -> "make";
 
@@ -819,6 +837,7 @@ public class WatheRemapper extends Remapper {
 
                     case 34376 -> "BUNDLE_INSERT";
 
+                    case 29642 -> "WAX_ON";
                     case 27014 -> "SECONDARY";
                     case 25139 -> "CODEC";
                     case 23716 -> "MAX_HEALTH";
@@ -834,6 +853,8 @@ public class WatheRemapper extends Remapper {
                     case 15245 -> "BLOCKS";
                     case 14628 -> "WOOL_HIT";
                     case 13987 -> "connection";
+                    case 13327 -> "INT";
+                    case 13326 -> "STRING";
                     case 13313 -> "OPTIONAL_UUID"; // REPLACE WITH ONE IN TrainAcrossTime
                     case 12607 -> "LOWER";
                     case 12524 -> "NOTE";
@@ -841,6 +862,9 @@ public class WatheRemapper extends Remapper {
                     case 12481 -> "HORIZONTAL_FACING";
                     case 11867 -> "worldPosition";
                     case 11863 -> "level";
+                    case 11251 -> "SMOKE";
+                    case 11218 -> "ITEM";
+                    case 11043 -> "NORTH";
                     case 11036 -> "UP";
                     case 10595 -> "WHITE_GLAZED_TERRACOTTA";
                     case 10446 -> "WHITE_WOOL";
@@ -859,8 +883,10 @@ public class WatheRemapper extends Remapper {
                     case 7498 -> "inventoryMenu";
 
                     case 6183 -> "RIGHT";
+                    case 6012 -> "tickCount";
                     case 6011 -> "entityData";
 
+                    case 5974 -> "random";
                     case 5812 -> "SUCCESS";
                     case 5811 -> "PASS";
                     case 5808 -> "MAIN_HAND";
