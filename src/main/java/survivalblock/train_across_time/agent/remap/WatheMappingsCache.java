@@ -9,13 +9,15 @@ import org.objectweb.asm.commons.Remapper;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public abstract class WatheMappingsCache {
-    public static final WatheMappingsCache INSTANCE = FabricLoader.getInstance().isDevelopmentEnvironment() ? new Dev() : new Prod();
+    public static final Path MAPPINGS_TINY_LOCATION = Paths.get("mappings.tiny");
+    public static final WatheMappingsCache INSTANCE;
 
     public static WatheMappingsCache create() {
         return new Prod();
@@ -218,7 +220,7 @@ public abstract class WatheMappingsCache {
         public void reload() {
             clear();
 
-            try (InputStream in = Files.newInputStream(Paths.get("mappings.tiny"))) {
+            try (InputStream in = Files.newInputStream(MAPPINGS_TINY_LOCATION)) {
                 Tiny2FileReader.read(new InputStreamReader(in), MAPPING_VISITOR);
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -274,6 +276,8 @@ public abstract class WatheMappingsCache {
     }
 
     static {
+        boolean tryWrite = FabricLoader.getInstance().isDevelopmentEnvironment() && Files.exists(MAPPINGS_TINY_LOCATION);
+        INSTANCE = tryWrite ? new Dev() : new Prod();
         INSTANCE.reload();
     }
 }
