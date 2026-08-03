@@ -1,42 +1,19 @@
 package survivalblock.train_across_time;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import net.fabricmc.api.ModInitializer;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.syncher.EntityDataSerializer;
 
-import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
-public class TrainAcrossTime {
-    public static final Executable SHOP_ENTRIES_INITIALIZER = new Executable(1);
+public class TrainAcrossTime implements ModInitializer {
+    // see WatheClassPatches for PlayerBodyEntity
+    @SuppressWarnings("unused")
+    public static final EntityDataSerializer<Optional<UUID>> OPTIONAL_UUID = EntityDataSerializer.forValueType(ByteBufCodecs.optional(UUIDUtil.STREAM_CODEC));
 
-    public static class Executable implements Runnable {
-        @Nullable
-        private Integer maxExecutionCount;
-        @Nullable
-        private Runnable delegate = null;
-
-        public Executable(@Nullable Integer maxExecutionCount) {
-            this.maxExecutionCount = maxExecutionCount;
-        }
-
-        public Executable() {
-            this(null);
-        }
-
-        public void set(@NonNull Runnable runnable) {
-            this.delegate = runnable;
-        }
-
-        @Override
-        public void run() {
-            if (this.maxExecutionCount != null && this.maxExecutionCount < 0) {
-                return;
-            }
-
-            Objects.requireNonNull(this.delegate).run();
-
-            if (this.maxExecutionCount != null) {
-                this.maxExecutionCount--;
-            }
-        }
+    @Override
+    public void onInitialize() {
     }
 }

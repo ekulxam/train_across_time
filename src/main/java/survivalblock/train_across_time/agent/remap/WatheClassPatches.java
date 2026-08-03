@@ -305,33 +305,50 @@ public class WatheClassPatches {
         register("dev/doctor4t/ratatouille/util/registrar/EntityTypeRegistrar", node -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("create")) {
-                    InsnList insns = new InsnList();
-
-                    insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                    insns.add(new FieldInsnNode(
-                            Opcodes.GETFIELD,
-                            "dev/doctor4t/ratatouille/util/registrar/Registrar",
-                            "namespace",
-                            "Ljava/lang/String;"
-                    ));
-                    insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
-                    insns.add(new MethodInsnNode(
-                            Opcodes.INVOKESTATIC,
-                            "net/minecraft/resources/Identifier",
-                            "fromNamespaceAndPath",
-                            "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;",
-                            false
-                    ));
-                    insns.add(new MethodInsnNode(
-                            Opcodes.INVOKESTATIC,
-                            "net/minecraft/resources/ResourceKey",
-                            "create",
-                            "(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;",
-                            false
-                    ));
-
+                    List<MethodInsnNode> buildCalls = new ArrayList<>();
                     for (AbstractInsnNode insn : method.instructions) {
-                        // look for EntityType.Builder.build() calls and replace with the instructions above, also create a new insn list for every build call
+                        if (insn instanceof MethodInsnNode methodInsnNode && methodInsnNode.owner.equals("net/minecraft/world/entity/EntityType$Builder") && methodInsnNode.name.equals("build")) {
+                            methodInsnNode.desc = methodInsnNode.desc.substring(0, 1) + "Lnet/minecraft/resources/ResourceKey;" + methodInsnNode.desc.substring(1);
+                            buildCalls.add(methodInsnNode);
+                        }
+                    }
+
+                    for (MethodInsnNode build : buildCalls) {
+                        InsnList insns = new InsnList();
+
+                        insns.add(new FieldInsnNode(
+                                Opcodes.GETSTATIC,
+                                "net/minecraft/core/registries/Registries",
+                                "ENTITY_TYPE",
+                                "Lnet/minecraft/resources/ResourceKey;"
+                        ));
+
+                        insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+
+                        insns.add(new FieldInsnNode(
+                                Opcodes.GETFIELD,
+                                "dev/doctor4t/ratatouille/util/registrar/Registrar",
+                                "namespace",
+                                "Ljava/lang/String;"
+                        ));
+                        insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "net/minecraft/resources/Identifier",
+                                "fromNamespaceAndPath",
+                                "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;",
+                                false
+                        ));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "net/minecraft/resources/ResourceKey",
+                                "create",
+                                "(Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;",
+                                false
+                        ));
+
+                        method.instructions.insertBefore(build, insns);
+                        method.maxStack += 2; // add a ResourceKey and Identifier
                     }
                 }
             }
@@ -435,6 +452,34 @@ public class WatheClassPatches {
                         methodNode.instructions.insertBefore(getStaticItem, new TypeInsnNode(Opcodes.NEW, "net/minecraft/world/item/ItemStackTemplate"));
                         methodNode.instructions.insertBefore(getStaticItem, new InsnNode(Opcodes.DUP));
                         methodNode.instructions.set(methodInsn, ctor);
+                    }
+                }
+            }
+        });
+        register("dev/doctor4t/wathe/entity/PlayerBodyEntity", node -> {
+            for (MethodNode methodNode : node.methods) {
+                //noinspection IfCanBeSwitch
+                if (methodNode.name.equals("<clinit>")) {
+                    for (var insn : methodNode.instructions) {
+                        if (insn instanceof FieldInsnNode fieldInsnNode && fieldInsnNode.owner.equals("net/minecraft/network/syncher/EntityDataSerializers") && fieldInsnNode.name.equals("OPTIONAL_UUID")) {
+                            fieldInsnNode.owner = "survivalblock/train_across_time/TrainAcrossTime";
+                        }
+                    }
+                } else if (methodNode.name.equals("addAdditionalSaveData")) {
+                    methodNode.desc = methodNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
+                    for (var insn : methodNode.instructions) {
+                        if (insn instanceof MethodInsnNode methodInsnNode) {
+                            methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueOutput");
+                            methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
+                        }
+                    }
+                } else if (methodNode.name.equals("readAdditionalSaveData")) {
+                    methodNode.desc = methodNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+                    for (var insn : methodNode.instructions) {
+                        if (insn instanceof MethodInsnNode methodInsnNode) {
+                            methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueInput");
+                            methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+                        }
                     }
                 }
             }

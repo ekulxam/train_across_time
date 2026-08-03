@@ -31,7 +31,8 @@ public class WatheRemapper extends Remapper {
 
     @Override
     public String map(String internalName) {
-        // WHY FABRIC WHY DID YOU STOP MAINTAINING INTERMEDIARY THATS LITERALLY AGAINST ITS WHOLE POINT
+        // WHY FABRIC WHY DID YOU STOP MAINTAINING INTERMEDIARY THATS LITERALLY AGAINST ITS WHOLE POINT - Typho
+        // deobfuscation moment - Sky
         if (internalName.startsWith("net/minecraft/class_")) {
             try {
                 internalName = switch (Integer.parseInt(internalName.substring(internalName.indexOf('_') + 1))) {
@@ -46,6 +47,8 @@ public class WatheRemapper extends Remapper {
                     case 9129 -> "net/minecraft/network/RegistryFriendlyByteBuf";
 
                     case 8710 -> "net/minecraft/network/protocol/common/custom/CustomPacketPayload";
+
+                    case 8111 -> "net/minecraft/world/damagesource/DamageTypes";
 
                     case 8002 -> "net/minecraft/client/gui/screens/inventory/tooltip/TooltipRenderUtil";
 
@@ -65,6 +68,9 @@ public class WatheRemapper extends Remapper {
                     case 5321 -> "net/minecraft/resources/ResourceKey";
 
                     case 5250 -> "net/minecraft/network/chat/MutableComponent";
+
+                    case 5134 -> "net/minecraft/world/entity/ai/attributes/Attributes";
+                    case 5132 -> "net/minecraft/world/entity/ai/attributes/AttributeSupplier";
 
                     case 4970 -> "net/minecraft/world/level/block/state/BlockBehaviour";
 
@@ -95,6 +101,7 @@ public class WatheRemapper extends Remapper {
                     case 3414 -> "net/minecraft/sounds/SoundEvent";
 
                     case 3324 -> "net/minecraft/server/players/PlayerList";
+                    case 3321 -> "net/minecraft/server/players/OldUsersConverter";
 
                     case 3244 -> "net/minecraft/server/network/ServerGamePacketListenerImpl";
                     case 3222 -> "net/minecraft/server/level/ServerPlayer";
@@ -102,6 +109,10 @@ public class WatheRemapper extends Remapper {
 
                     case 3174 -> "net/minecraft/server/dedicated/DedicatedPlayerList";
 
+                    case 2945 -> "net/minecraft/network/syncher/SynchedEntityData";
+                    case 2943 -> "net/minecraft/network/syncher/EntityDataSerializers";
+                    case 2941 -> "net/minecraft/network/syncher/EntityDataSerializer";
+                    case 2940 -> "net/minecraft/network/syncher/EntityDataAccessor";
                     case 2960 -> "net/minecraft/resources/Identifier";
 
                     case 2769 -> "net/minecraft/world/level/block/state/properties/Property";
@@ -131,6 +142,7 @@ public class WatheRemapper extends Remapper {
                     case 2464 -> "net/minecraft/world/level/block/RenderShape";
                     case 2415 -> "net/minecraft/world/level/block/Mirror";
 
+                    case 2394 -> "net/minecraft/core/particles/ParticleOptions";
                     case 2382 -> "net/minecraft/core/Vec3i";
                     case 2378 -> "net/minecraft/core/Registry";
                     case 2374 -> "net/minecraft/core/Position";
@@ -170,9 +182,13 @@ public class WatheRemapper extends Remapper {
 
                     case 1311 -> "net/minecraft/world/entity/MobCategory";
                     case 1309 -> "net/minecraft/world/entity/LivingEntity";
+                    case 1308 -> "net/minecraft/world/entity/Mob";
+                    case 1306 -> "net/minecraft/world/entity/HumanoidArm";
+                    case 1304 -> "net/minecraft/world/entity/EquipmentSlot";
 
                     case 1299 -> "net/minecraft/world/entity/EntityType";
                     case 1297 -> "net/minecraft/world/entity/Entity";
+                    case 1282 -> "net/minecraft/world/damagesource/DamageSource";
                     case 1269 -> "net/minecraft/world/InteractionResult";
                     case 1263 -> "net/minecraft/world/Container";
 
@@ -230,8 +246,11 @@ public class WatheRemapper extends Remapper {
 
                     case "net/minecraft/class_6885$class_6887" -> "net/minecraft/core/HolderSet$ListBacked";
 
+                    case "net/minecraft/class_5132$class_5133" -> "net/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder";
+
                     case "net/minecraft/class_4970$class_2251" -> "net/minecraft/world/level/block/state/BlockBehaviour$Properties";
 
+                    case "net/minecraft/class_2945$class_9222" -> "net/minecraft/network/syncher/SynchedEntityData$Builder";
                     case "net/minecraft/class_2689$class_2690" -> "net/minecraft/world/level/block/state/StateDefinition$Builder";
                     case "net/minecraft/class_2591$class_5559" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder$Factory";
                     case "net/minecraft/class_2591$class_2592" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder";
@@ -304,6 +323,7 @@ public class WatheRemapper extends Remapper {
                     case 57379 -> "set";
                     case 57348 -> "attributes";
                     case 57346 -> "createAttributes";
+                    case 56912 -> "define";
                     case 56690 -> "getDurability";
                     case 56673 -> "registryAccess";
                     case 56438 -> "ofMember";
@@ -312,6 +332,7 @@ public class WatheRemapper extends Remapper {
                     case 54094 -> "simpleCodec";
                     case 53969 -> "codec";
 
+                    case 49708 -> "is";
                     case 47983 -> "wrapAsHolder";
                     case 47908 -> "createVariableRangeEvent";
                     case 46758 -> "asGetterLookup";
@@ -347,8 +368,11 @@ public class WatheRemapper extends Remapper {
                     case 27692 -> "withStyle";
                     case 27661 -> "copy";
                     case 27299 -> "clientTrackingRange";
+                    case 26868 -> "add";
+                    case 26828 -> "createMobAttributes";
                     case 26204 -> "getBlock";
                     case 26186 -> "rotate";
+                    case 25928 -> "hasUUID";
                     case 25927 -> "putUUID";
                     case 25926 -> "getUUID";
                     case 24953 -> "atCenterOf";
@@ -367,8 +391,12 @@ public class WatheRemapper extends Remapper {
                     case 15789 -> "getTickDelay";
                     case 15729 -> "getSource";
                     case 15441 -> "getB";
+                    case 14546 -> "convertMobOwnerIfNecessary";
                     case 14364 -> "send";
                     case 12832 -> "getPath";
+                    case 12791 -> "defineId";
+                    case 12789 -> "get";
+                    case 12778 -> "set";
                     case 11667 -> "add";
                     case 11657 -> "setValue";
                     case 11654 -> "getValue";
@@ -437,12 +465,24 @@ public class WatheRemapper extends Remapper {
                     case 7353 -> "displayClientMessage";
                     case 7270 -> "addItem";
 
+                    case 6118 -> "getItemBySlot";
+                    case 6087 -> "doPush";
+                    case 6068 -> "getMainArm";
                     case 6047 -> "getMainHandItem";
 
                     case 5903 -> "of";
                     case 5901 -> "noSummon";
                     case 5845 -> "getStringUUID";
+                    case 5749 -> "readAdditionalSaveData";
+                    case 5697 -> "push";
+                    case 5693 -> "defineSynchedData";
+                    case 5682 -> "getServer"; // WARNING: DOES NOT EXIST IN Entity IN 26.1.2
+                    case 5679 -> "isInvulnerableTo";
+                    case 5673 -> "setItemSlot";
                     case 5667 -> "getUUID";
+                    case 5661 -> "getArmorItems"; // WARNING: DOES NOT EXIST IN LivingEntity IN 26.1.2
+                    case 5655 -> "isInvulnerable";
+                    case 5652 -> "addAdditionalSaveData";
                     case 5476 -> "getDisplayName";
                     case 5447 -> "setItem";
                     case 5438 -> "getItem";
@@ -499,7 +539,9 @@ public class WatheRemapper extends Remapper {
                     case 48846 -> "ARMADILLO";
                     case 48554 -> "STRING_UTF8";
                     case 48547 -> "BOOL";
+                    case 44869 -> "GENERIC_KILL";
                     case 44688 -> "CREATIVE_MODE_TAB";
+                    case 42347 -> "FELL_OUT_OF_WORLD";
                     case 41934 -> "HELMET";
                     case 41935 -> "CHESTPLATE";
                     case 41936 -> "LEGGINGS";
@@ -516,6 +558,7 @@ public class WatheRemapper extends Remapper {
                     case 38068 -> "WARDEN_HEARTBEAT";
 
                     case 25139 -> "CODEC";
+                    case 23716 -> "MAX_HEALTH";
                     case 22030 -> "NETHERITE_BOOTS";
                     case 20381 -> "HONEY_BOTTLE";
 
@@ -525,6 +568,7 @@ public class WatheRemapper extends Remapper {
                     case 15245 -> "BLOCKS";
                     case 14628 -> "WOOL_HIT";
                     case 13987 -> "connection";
+                    case 13313 -> "OPTIONAL_UUID"; // REPLACE WITH ONE IN TrainAcrossTime
                     case 12524 -> "NOTE";
                     case 12508 -> "WATERLOGGED";
                     case 12481 -> "HORIZONTAL_FACING";
@@ -538,9 +582,13 @@ public class WatheRemapper extends Remapper {
                     case 9229 -> "random";
 
                     case 8922 -> "WOOD";
+                    case 8037 -> "EMPTY";
 
                     case 7545 -> "selected";
                     case 7498 -> "inventoryMenu";
+
+                    case 6183 -> "RIGHT";
+                    case 6011 -> "entityData";
 
                     case 5812 -> "SUCCESS";
 

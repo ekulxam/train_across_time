@@ -18,6 +18,9 @@
   "icon": "assets/${id}/icon.png",
   "environment": "*",
   "entrypoints": {
+    "main": [
+      "survivalblock.train_across_time.TrainAcrossTime"
+    ],
     "mass-asm": [
       "survivalblock.train_across_time.TheTrainAcrossTimeMassAsm"
     ]
