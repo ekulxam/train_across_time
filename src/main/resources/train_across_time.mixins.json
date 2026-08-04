@@ -5,11 +5,16 @@
   "mixins": [
     "FoodPropertiesMixin",
     "GameConstantsMixin",
+    "InventoryMixin",
+    "ItemMixin",
     "RatatouilleItemsMixin",
+    "ServerPlayerMixin",
     "WatheMixin"
   ],
   "client": [
-    "LocalPlayerMixin"
+    "ClientLevelMixin",
+    "LocalPlayerMixin",
+    "NoteItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

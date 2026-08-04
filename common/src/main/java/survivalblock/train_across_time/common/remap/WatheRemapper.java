@@ -47,6 +47,7 @@ public class WatheRemapper extends Remapper {
             case "net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents$ModifyEntries" -> "net/fabricmc/fabric/api/creativetab/v1/CreativeModeTabEvents$ModifyOutput";
             case "net/fabricmc/fabric/api/itemgroup/v1/FabricItemGroupEntries" -> "net/fabricmc/fabric/api/creativetab/v1/FabricCreativeModeTabOutput";
             case "net/fabricmc/fabric/api/itemgroup/v1/FabricItemGroup" -> "net/fabricmc/fabric/api/creativetab/v1/FabricCreativeModeTab";
+            case "net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents$StartWorldTick" -> "net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents$StartLevelTick";
 
             case "net/minecraft/world/ItemInteractionResult" -> "net/minecraft/world/InteractionResult";
 
