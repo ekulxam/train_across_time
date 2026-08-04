@@ -16,29 +16,67 @@
 package survivalblock.train_across_time.agent.remap;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AnnotationRemapper;
 import org.objectweb.asm.commons.Remapper;
+
+import java.util.Set;
 
 /**
  * @author Typho
  */
 public class MixinAnnotationRemapper extends AnnotationRemapper {
-    public MixinAnnotationRemapper(String descriptor, AnnotationVisitor annotationVisitor, Remapper remapper) {
+    public final Set<Type> mixinTargets;
+
+    public MixinAnnotationRemapper(String descriptor, AnnotationVisitor annotationVisitor, Remapper remapper, Set<Type> mixinTargets) {
         super(descriptor, annotationVisitor, remapper);
+        this.mixinTargets = mixinTargets;
     }
 
-    public MixinAnnotationRemapper(int api, String descriptor, AnnotationVisitor annotationVisitor, Remapper remapper) {
+    public MixinAnnotationRemapper(int api, String descriptor, AnnotationVisitor annotationVisitor, Remapper remapper, Set<Type> mixinTargets) {
         super(api, descriptor, annotationVisitor, remapper);
+        this.mixinTargets = mixinTargets;
+    }
+
+    @Override
+    public void visit(String name, Object value) {
+        if (!mixinTargets.isEmpty()) {
+            if (value instanceof String string) {
+                if (string.contains("(")) { // method descriptor
+                    var index = string.indexOf('(');
+                    var methodName = string.substring(0, index);
+                    var methodDesc = string.substring(index);
+
+                    if (methodName.isEmpty()) {
+                        value = remapper.mapMethodDesc(methodDesc);
+                    } else if (methodName.contains(";")) {
+                        var index1 = methodName.indexOf(';') + 1;
+
+                        var methodOwner = Type.getType(methodName.substring(0, index1)).getInternalName();
+                        methodName = methodName.substring(index1);
+
+                        value = "L" + remapper.map(methodOwner) + ";" + remapper.mapMethodName(methodOwner, methodName, methodDesc) + remapper.mapMethodDesc(methodDesc);
+                    } else {
+                        var presumedOwner = mixinTargets.stream().findAny().orElseThrow().getInternalName();
+                        value = remapper.mapMethodName(presumedOwner, methodName, methodDesc) + remapper.mapMethodDesc(methodDesc);
+                    }
+                } else if (string.startsWith("L") && string.endsWith(";")) {
+                    value = remapper.mapType(string);
+                }
+            }
+        }
+
+        super.visit(name, value);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     protected AnnotationVisitor createAnnotationRemapper(AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(this.api, null, annotationVisitor, this.remapper);
+        return new MixinAnnotationRemapper(this.api, null, annotationVisitor, this.remapper, mixinTargets);
     }
 
     @Override
     protected AnnotationVisitor createAnnotationRemapper(String descriptor, AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(this.api, descriptor, annotationVisitor, this.remapper);
+        return new MixinAnnotationRemapper(this.api, descriptor, annotationVisitor, this.remapper, mixinTargets);
     }
 }

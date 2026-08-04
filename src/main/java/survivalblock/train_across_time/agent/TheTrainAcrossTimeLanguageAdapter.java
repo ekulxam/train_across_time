@@ -42,7 +42,7 @@ import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER
  */
 @SuppressWarnings("unused")
 public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
-    public static final Path DEBUG_PATH = FabricLoader.getInstance().isDevelopmentEnvironment() ? FabricLoader.getInstance().getGameDir().toAbsolutePath().resolve(".wathe_port_debug") : null;;
+    public static final Path DEBUG_PATH = FabricLoader.getInstance().isDevelopmentEnvironment() ? FabricLoader.getInstance().getGameDir().toAbsolutePath().resolve(".wathe_port_debug") : null;
     public static final ClassOutputInfo.UsedMappingsOutput USED_MAPPINGS_OUTPUT;
 
     static {
@@ -181,6 +181,10 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
     }
 
     public static ClassNode transformMixin(ClassNode oldNode) {
+        if (!(oldNode.name.startsWith("dev/doctor4t/wathe") || oldNode.name.startsWith("dev/doctor4t/ratatouille"))) {
+            return oldNode;
+        }
+
         try {
             var info = new ClassOutputInfo(oldNode.name, USED_MAPPINGS_OUTPUT);
             var node = TheTrainAcrossTimeLanguageAdapter.transform(info, oldNode::accept);

@@ -15,18 +15,19 @@
  */
 package survivalblock.train_across_time.agent.remap;
 
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.*;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 
-// TODO
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author Typho
  */
 public class MixinClassRemapper extends ClassRemapper {
+    public final Set<Type> mixinTargets = new HashSet<>();
+
     public MixinClassRemapper(ClassVisitor classVisitor, Remapper remapper) {
         super(classVisitor, remapper);
     }
@@ -36,23 +37,47 @@ public class MixinClassRemapper extends ClassRemapper {
     }
 
     @Override
+    public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+        if (descriptor.equals("Lorg/spongepowered/asm/mixin/Mixin;")) {
+            return new AnnotationVisitor(api, super.visitAnnotation(descriptor, visible)) {
+                @Override
+                public AnnotationVisitor visitArray(String name) {
+                    return switch (name) {
+                        case "value", "targets" -> new AnnotationVisitor(api, super.visitArray(name)) {
+                            @Override
+                            public void visit(String name, Object value) {
+                                super.visit(name, value);
+
+                                mixinTargets.add((Type) remapper.mapValue(value instanceof Type type ? type : Type.getType((String) value)));
+                            }
+                        };
+                        default -> super.visitArray(name);
+                    };
+                }
+            };
+        }
+
+        return super.visitAnnotation(descriptor, visible);
+    }
+
+    @Override
     protected FieldVisitor createFieldRemapper(FieldVisitor fieldVisitor) {
-        return new MixinFieldRemapper(this.api, fieldVisitor, this.remapper);
+        return new MixinFieldRemapper(this.api, fieldVisitor, this.remapper, mixinTargets);
     }
 
     @Override
     protected MethodVisitor createMethodRemapper(MethodVisitor methodVisitor) {
-        return new MixinMethodRemapper(this.api, methodVisitor, this.remapper);
+        return new MixinMethodRemapper(this.api, methodVisitor, this.remapper, mixinTargets);
     }
 
     @SuppressWarnings("deprecation")
     @Override
     protected AnnotationVisitor createAnnotationRemapper(AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(this.api, null, annotationVisitor, this.remapper);
+        return new MixinAnnotationRemapper(this.api, null, annotationVisitor, this.remapper, mixinTargets);
     }
 
     @Override
     protected AnnotationVisitor createAnnotationRemapper(String descriptor, AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(this.api, descriptor, annotationVisitor, this.remapper);
+        return new MixinAnnotationRemapper(this.api, descriptor, annotationVisitor, this.remapper, mixinTargets);
     }
 }

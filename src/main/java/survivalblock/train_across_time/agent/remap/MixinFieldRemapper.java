@@ -17,29 +17,36 @@ package survivalblock.train_across_time.agent.remap;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.FieldRemapper;
 import org.objectweb.asm.commons.Remapper;
+
+import java.util.Set;
 
 /**
  * @author Typho
  */
 public class MixinFieldRemapper extends FieldRemapper {
-    public MixinFieldRemapper(FieldVisitor fieldVisitor, Remapper remapper) {
+    public final Set<Type> mixinTargets;
+
+    public MixinFieldRemapper(FieldVisitor fieldVisitor, Remapper remapper, Set<Type> mixinTargets) {
         super(fieldVisitor, remapper);
+        this.mixinTargets = mixinTargets;
     }
 
-    public MixinFieldRemapper(int api, FieldVisitor fieldVisitor, Remapper remapper) {
+    public MixinFieldRemapper(int api, FieldVisitor fieldVisitor, Remapper remapper, Set<Type> mixinTargets) {
         super(api, fieldVisitor, remapper);
+        this.mixinTargets = mixinTargets;
     }
 
     @SuppressWarnings("deprecation")
     @Override
     protected AnnotationVisitor createAnnotationRemapper(AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(this.api, null, annotationVisitor, this.remapper);
+        return new MixinAnnotationRemapper(this.api, null, annotationVisitor, this.remapper, mixinTargets);
     }
 
     @Override
     protected AnnotationVisitor createAnnotationRemapper(String descriptor, AnnotationVisitor annotationVisitor) {
-        return new MixinAnnotationRemapper(this.api, descriptor, annotationVisitor, this.remapper);
+        return new MixinAnnotationRemapper(this.api, descriptor, annotationVisitor, this.remapper, mixinTargets);
     }
 }
