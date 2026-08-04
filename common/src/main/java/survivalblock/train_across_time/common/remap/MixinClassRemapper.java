@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package survivalblock.train_across_time.agent.remap;
+package survivalblock.train_across_time.common.remap;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.ClassRemapper;

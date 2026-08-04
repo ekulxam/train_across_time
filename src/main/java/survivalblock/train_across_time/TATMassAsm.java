@@ -15,7 +15,7 @@
  */
 package survivalblock.train_across_time;
 
-public class TheTrainAcrossTimeMassAsm implements Runnable {
+public class TATMassAsm implements Runnable {
     @Override
     public void run() {
         /*

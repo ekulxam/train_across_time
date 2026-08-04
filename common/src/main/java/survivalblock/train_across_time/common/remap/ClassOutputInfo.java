@@ -1,4 +1,4 @@
-package survivalblock.train_across_time.agent.remap;
+package survivalblock.train_across_time.common.remap;
 
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassWriter;
@@ -6,15 +6,14 @@ import org.objectweb.asm.ClassWriter;
 import java.util.*;
 
 public class ClassOutputInfo {
-    public final String className;
+    public String className;
     public final UsedMappingsOutput usedMappingsOutput;
 
     private boolean changed = false;
     private int writerFlags = 0;
     private final Set<String> errors = new HashSet<>();
 
-    public ClassOutputInfo(String className, UsedMappingsOutput usedMappingsOutput) {
-        this.className = className;
+    public ClassOutputInfo(UsedMappingsOutput usedMappingsOutput) {
         this.usedMappingsOutput = usedMappingsOutput;
     }
 

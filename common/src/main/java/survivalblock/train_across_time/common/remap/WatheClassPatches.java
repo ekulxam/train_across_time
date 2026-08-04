@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package survivalblock.train_across_time.agent.remap;
+package survivalblock.train_across_time.common.remap;
 
-import net.fabricmc.loader.impl.util.log.Log;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
+import survivalblock.train_across_time.common.TATConstants;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.logInfo;
 
 /**
  * @author Typho
@@ -398,7 +396,7 @@ public class WatheClassPatches {
         ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
-                    logInfo("Injecting item ids into RatatouilleItems");
+                    TATConstants.PLATFORM.info("Injecting item ids into RatatouilleItems");
                     applyItemIds(method, Map.of());
                     info.computeMaxStackSizes();
                 }
@@ -409,7 +407,7 @@ public class WatheClassPatches {
         ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
-                    logInfo("Injecting block ids into RatatouilleBlocks");
+                    TATConstants.PLATFORM.info("Injecting block ids into RatatouilleBlocks");
                     applyBlockIds(method, Map.of());
                     info.computeMaxStackSizes();
                 }
@@ -420,7 +418,7 @@ public class WatheClassPatches {
         ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
-                    logInfo("Injecting item ids into WatheItems");
+                    TATConstants.PLATFORM.info("Injecting item ids into WatheItems");
                     applyItemIds(method, Map.of(
                             2, "knife"
                     ));
@@ -433,7 +431,7 @@ public class WatheClassPatches {
         ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
-                    logInfo("Injecting block ids into WatheBlocks");
+                    TATConstants.PLATFORM.info("Injecting block ids into WatheBlocks");
                     applyBlockIds(method, Map.of());
                     info.computeMaxStackSizes();
                 } else if (method.name.equals("createBranch")) {
@@ -449,7 +447,7 @@ public class WatheClassPatches {
                                                 "BLOCK",
                                                 "Lnet/minecraft/resources/ResourceKey;"
                                         ));
-                                        insns.add(new LdcInsnNode("wathe"));
+                                        insns.add(new LdcInsnNode(TATConstants.WATHE));
                                         insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
                                         insns.add(new MethodInsnNode(
                                                 Opcodes.INVOKESTATIC,
@@ -705,6 +703,28 @@ public class WatheClassPatches {
                                     break;
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        });
+        register(List.of(
+                TATConstants.MIXIN_INFO_CLASS
+        ), (node, info) -> {
+            for (MethodNode method : node.methods) {
+                if (method.name.equals("loadMixinClass")) {
+                    for (AbstractInsnNode insn : method.instructions) {
+                        if (insn.getOpcode() == Opcodes.ARETURN) {
+                            var insns = new InsnList();
+                            insns.add(new MethodInsnNode(
+                                    Opcodes.INVOKESTATIC,
+                                    "survivalblock/train_across_time/agent/TATLanguageAdapter",
+                                    "transformMixin",
+                                    "(Lorg/objectweb/asm/tree/ClassNode;)Lorg/objectweb/asm/tree/ClassNode;"
+                            ));
+                            insns.add(new VarInsnNode(Opcodes.ASTORE, 2));
+                            insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                            method.instructions.insertBefore(insn, insns);
                         }
                     }
                 }

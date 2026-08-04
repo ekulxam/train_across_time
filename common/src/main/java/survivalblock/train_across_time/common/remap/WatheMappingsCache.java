@@ -1,12 +1,11 @@
-package survivalblock.train_across_time.agent.remap;
+package survivalblock.train_across_time.common.remap;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.impl.lib.mappingio.MappedElementKind;
-import net.fabricmc.loader.impl.lib.mappingio.MappingVisitor;
-import net.fabricmc.loader.impl.lib.mappingio.format.tiny.Tiny2FileReader;
+import net.fabricmc.mappingio.MappedElementKind;
+import net.fabricmc.mappingio.MappingVisitor;
+import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.commons.Remapper;
-import survivalblock.train_across_time.agent.TheTrainAcrossTimeLanguageAdapter;
+import survivalblock.train_across_time.common.TATConstants;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -18,9 +17,14 @@ import java.util.Map;
 
 public abstract class WatheMappingsCache {
     public static final Path MAPPINGS_TINY_LOCATION = Paths.get("mappings.tiny");
-    public static final WatheMappingsCache INSTANCE;
+    public static final String MAPPINGS_BIN_LOCATION = "mappings.bin";
 
     public static WatheMappingsCache create() {
+        boolean tryWrite = TATConstants.PLATFORM.compileMappings() && Files.exists(MAPPINGS_TINY_LOCATION);
+        return tryWrite ? new Dev() : new Prod();
+    }
+
+    public static WatheMappingsCache createStandalone() {
         return new Prod();
     }
 
@@ -28,7 +32,7 @@ public abstract class WatheMappingsCache {
     public final Map<String, String> methods = new HashMap<>();
     public final Map<String, String> fields = new HashMap<>();
 
-    public Remapper createRemapper(int api, ClassOutputInfo info) {
+    public Remapper createRemapper(int api, ClassOutputInfo info, boolean errorIfUnmapped) {
         return new Remapper(api) {
             @Override
             public String map(String internalName) {
@@ -36,7 +40,9 @@ public abstract class WatheMappingsCache {
                     var newName = classes.get(internalName);
 
                     if (newName == null) {
-                        info.addError("No class mapping for " + internalName);
+                        if (errorIfUnmapped) {
+                            info.addError("No class mapping for " + internalName);
+                        }
                     } else {
                         info.markChanged();
                         info.usedMappingsOutput.useClass(internalName);
@@ -53,7 +59,9 @@ public abstract class WatheMappingsCache {
                     var newName = methods.get(name);
 
                     if (newName == null) {
-                        info.addError("No method mapping for " + name);
+                        if (errorIfUnmapped) {
+                            info.addError("No method mapping for " + name);
+                        }
                     } else {
                         info.markChanged();
                         info.usedMappingsOutput.useMethod(name);
@@ -70,7 +78,9 @@ public abstract class WatheMappingsCache {
                     var newName = fields.get(name);
 
                     if (newName == null) {
-                        info.addError("No field mapping for " + name);
+                        if (errorIfUnmapped) {
+                            info.addError("No field mapping for " + name);
+                        }
                     } else {
                         info.markChanged();
                         info.usedMappingsOutput.useField(name);
@@ -83,7 +93,7 @@ public abstract class WatheMappingsCache {
         };
     }
 
-    public void load(DataInput in, boolean override, boolean persistent) throws IOException {
+    public void load(DataInput in, boolean override, ClassOutputInfo.UsedMappingsOutput usedMappingsOutput) throws IOException {
         var numClasses = in.readInt();
 
         for (int i = 0; i < numClasses; i++) {
@@ -96,9 +106,7 @@ public abstract class WatheMappingsCache {
                 classes.putIfAbsent(key, value);
             }
 
-            if (persistent) {
-                TheTrainAcrossTimeLanguageAdapter.USED_MAPPINGS_OUTPUT.useClass(key);
-            }
+            usedMappingsOutput.useClass(key);
         }
 
         var numMethods = in.readInt();
@@ -113,9 +121,7 @@ public abstract class WatheMappingsCache {
                 methods.putIfAbsent(key, value);
             }
 
-            if (persistent) {
-                TheTrainAcrossTimeLanguageAdapter.USED_MAPPINGS_OUTPUT.useMethod(key);
-            }
+            usedMappingsOutput.useMethod(key);
         }
 
         var numFields = in.readInt();
@@ -130,9 +136,7 @@ public abstract class WatheMappingsCache {
                 fields.putIfAbsent(key, value);
             }
 
-            if (persistent) {
-                TheTrainAcrossTimeLanguageAdapter.USED_MAPPINGS_OUTPUT.useField(key);
-            }
+            usedMappingsOutput.useField(key);
         }
     }
 
@@ -165,7 +169,7 @@ public abstract class WatheMappingsCache {
         fields.clear();
     }
 
-    public abstract void reload();
+    public abstract void reload(WatheTransformer transformer);
 
     private static class Dev extends WatheMappingsCache {
         public final MappingVisitor MAPPING_VISITOR = new MappingVisitor() {
@@ -248,7 +252,7 @@ public abstract class WatheMappingsCache {
         };
 
         @Override
-        public void reload() {
+        public void reload(WatheTransformer transformer) {
             clear();
 
             try (InputStream in = Files.newInputStream(MAPPINGS_TINY_LOCATION)) {
@@ -257,9 +261,9 @@ public abstract class WatheMappingsCache {
                 throw new RuntimeException(e);
             }
 
-            try (InputStream in = WatheMappingsCache.class.getClassLoader().getResourceAsStream("mappings.bin")) {
+            try (InputStream in = WatheMappingsCache.class.getClassLoader().getResourceAsStream(MAPPINGS_BIN_LOCATION)) {
                 if (in != null) {
-                    load(new DataInputStream(in), false, true);
+                    load(new DataInputStream(in), false, transformer.usedMappingsOutput);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -270,7 +274,7 @@ public abstract class WatheMappingsCache {
             if (extra != null) {
                 for (String path : extra.split(",")) {
                     try (InputStream in = Files.newInputStream(Paths.get(path))) {
-                        load(new DataInputStream(in), true, false);
+                        load(new DataInputStream(in), true, ClassOutputInfo.UsedMappingsOutput.NONE);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -281,12 +285,12 @@ public abstract class WatheMappingsCache {
 
     private static class Prod extends WatheMappingsCache {
         @Override
-        public void reload() {
+        public void reload(WatheTransformer transformer) {
             clear();
 
-            try (InputStream in = WatheMappingsCache.class.getClassLoader().getResourceAsStream("mappings.bin")) {
+            try (InputStream in = WatheMappingsCache.class.getClassLoader().getResourceAsStream(MAPPINGS_BIN_LOCATION)) {
                 if (in != null) {
-                    load(new DataInputStream(in), true, false);
+                    load(new DataInputStream(in), true, ClassOutputInfo.UsedMappingsOutput.NONE);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -297,7 +301,7 @@ public abstract class WatheMappingsCache {
             if (extra != null) {
                 for (String path : extra.split(",")) {
                     try (InputStream in = Files.newInputStream(Paths.get(path))) {
-                        load(new DataInputStream(in), true, false);
+                        load(new DataInputStream(in), true, ClassOutputInfo.UsedMappingsOutput.NONE);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -307,7 +311,5 @@ public abstract class WatheMappingsCache {
     }
 
     static {
-        boolean tryWrite = FabricLoader.getInstance().isDevelopmentEnvironment() && Files.exists(MAPPINGS_TINY_LOCATION);
-        INSTANCE = tryWrite ? new Dev() : new Prod();
     }
 }

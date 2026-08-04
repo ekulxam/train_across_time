@@ -42,3 +42,5 @@ stonecutter {
 }
 
 include("agent")
+include("common")
+includeBuild("plugin")

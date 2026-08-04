@@ -22,7 +22,7 @@
       "survivalblock.train_across_time.TrainAcrossTime"
     ],
     "mass-asm": [
-      "survivalblock.train_across_time.TheTrainAcrossTimeMassAsm"
+      "survivalblock.train_across_time.TATMassAsm"
     ]
   },
   "mixins": [
@@ -33,6 +33,6 @@
     "wathe": "1.3.2-1.21.1"
   },
   "languageAdapters": {
-    "train_across_time": "survivalblock.train_across_time.agent.TheTrainAcrossTimeLanguageAdapter"
+    "train_across_time": "survivalblock.train_across_time.agent.TATLanguageAdapter"
   }
 }

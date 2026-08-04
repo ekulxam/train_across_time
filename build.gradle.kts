@@ -1,16 +1,12 @@
-import net.fabricmc.mappingio.MappingReader
-import net.fabricmc.mappingio.tree.MemoryMappingTree
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Opcodes
-import java.io.FileNotFoundException
-
 plugins {
-    java
+    id("java")
 
     id("me.modmuss50.mod-publish-plugin") version "2.0.0-beta.1"
     id("io.github.klahap.dotenv") version "1.1.3"
 
     id("dev.isxander.modstitch.base") version "0.8.5"
+
+    id("survivalblock.train_across_time.plugin") version "1.0.0"
 }
 
 modstitch {
@@ -88,68 +84,6 @@ repositories {
     maven("https://maven.bawnorton.com/releases") // mixinsquared
 }
 
-// What do they say, "Fake it 'til you make it"? Something like that
-val genTemplateIntermediaryClasses by tasks.registering {
-    val outputDir = layout.projectDirectory.dir("run/.template_intermediary")
-    outputs.dir(outputDir)
-
-    doLast {
-        val path = "run/mappings.tiny"
-        val mappingsTiny = file(path)
-        if (!mappingsTiny.exists()) {
-            println("(Template Intermediary) Unable to find mappings.tiny file at " + "path" + ", skipping...")
-            return@doLast
-        }
-
-        val tree = MemoryMappingTree()
-        MappingReader.read(mappingsTiny.toPath(), tree)
-
-        val targetDir = outputDir.asFile
-
-        tree.classes.forEach { classMapping ->
-            val intermediary = classMapping.getName("intermediary")
-            @Suppress("FoldInitializerAndIfToElvis", "RedundantSuppression")
-            if (intermediary == null) {
-                return@forEach
-            }
-
-            val classFile = File(targetDir, "$intermediary.class")
-            val folder = classFile.parentFile
-
-            if (!folder.mkdirs() && !folder.exists()) {
-                throw FileNotFoundException("File with path " + classFile.path + " could not be written to!")
-            }
-
-            val writer = ClassWriter(0) // the flags passed in here are also the number of clues I have of what the flags should be
-            writer.visit(
-                Opcodes.V25,
-                Opcodes.ACC_PUBLIC
-                        or Opcodes.ACC_INTERFACE
-                        or Opcodes.ACC_ABSTRACT,
-                intermediary,
-                null,
-                "java/lang/Object", // no L apparently
-                null
-            )
-            classFile.writeBytes(writer.toByteArray())
-        }
-    }
-}
-
-val clearTemplateIntermediaryClasses by tasks.registering {
-    val outputDir = layout.projectDirectory.dir("run/.template_intermediary")
-
-    doLast {
-        val folder = outputDir.asFile
-        if (!folder.exists()) {
-            return@doLast
-        }
-        if (!folder.deleteRecursively()) {
-            println("(Template Intermediary) Failed to delete all files in $outputDir")
-        }
-    }
-}
-
 dependencies {
     modstitchModImplementation("net.fabricmc.fabric-api:fabric-api:0.155.2+26.1.2")
 
@@ -182,19 +116,8 @@ dependencies {
     //include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
 
     implementation("net.fabricmc:tiny-remapper:0.14.0")
-
-    compileOnly(files(genTemplateIntermediaryClasses))
+    implementation(project(":common")) // TODO JiJ
 
     // if needed
     //include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.3")))
-}
-
-// Hook it into the compile task
-tasks.named<JavaCompile>("compileJava") {
-    dependsOn(genTemplateIntermediaryClasses)
-}
-
-tasks.processResources {
-    dependsOn(project(":agent").tasks.build)
-    dependsOn(clearTemplateIntermediaryClasses)
 }
