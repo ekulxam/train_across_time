@@ -20,12 +20,17 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AnnotationRemapper;
 import org.objectweb.asm.commons.Remapper;
 
+import java.util.List;
 import java.util.Set;
 
 /**
  * @author Typho
  */
 public class MixinAnnotationRemapper extends AnnotationRemapper {
+    public static final List<String> ACCESSOR_TYPES = List.of(
+            "Lorg/spongepowered/asm/mixin/gen/Accessor;",
+            "Lorg/spongepowered/asm/mixin/gen/Invoker;"
+    );
     public final Set<Type> mixinTargets;
 
     public MixinAnnotationRemapper(String descriptor, AnnotationVisitor annotationVisitor, Remapper remapper, Set<Type> mixinTargets) {
@@ -42,7 +47,10 @@ public class MixinAnnotationRemapper extends AnnotationRemapper {
     public void visit(String name, Object value) {
         if (!mixinTargets.isEmpty()) {
             if (value instanceof String string) {
-                if (string.contains("(")) { // method descriptor
+                if (ACCESSOR_TYPES.contains(descriptor)) {
+                    var presumedOwner = mixinTargets.stream().findAny().orElseThrow().getInternalName();
+                    value = remapper.mapMethodName(presumedOwner, remapper.mapFieldName(presumedOwner, string, "Ljava/lang/Object;"), "()V");
+                } else if (string.contains("(")) { // method descriptor
                     var index = string.indexOf('(');
                     var methodName = string.substring(0, index);
                     var methodDesc = string.substring(index);
