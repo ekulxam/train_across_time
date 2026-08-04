@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 /**
  * @author Typho
  */
-@SuppressWarnings("SwitchStatementWithTooFewBranches")
+@SuppressWarnings({"SwitchStatementWithTooFewBranches", "unchecked"})
 public class WatheClassPatches {
     private WatheClassPatches() {
     }
@@ -744,6 +744,80 @@ public class WatheClassPatches {
                     "wathe$fovPulse",
                     INJECT,
                     "getFieldOfViewModifier(ZF)F"
+            );
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/ItemEntityMixin"
+        ), (node, info) -> {
+            // unused @Shadow that changed so just remove it
+            node.fields.removeIf(field -> field.name.equals("thrower"));
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/ServerPlayerEntityMixin"
+        ), (node, info) -> {
+            changeInjectionAt(
+                    node,
+                    "wathe$disableSleepMessage",
+                    WRAP_OPERATION,
+                    "value", "INVOKE",
+                    "target", "Lnet/minecraft/server/level/ServerPlayer;sendOverlayMessage(Lnet/minecraft/network/chat/Component;)V"
+            );
+
+            for (MethodNode method : node.methods) {
+                if (method.name.equals("wathe$disableSleepMessage")) {
+                    method.desc = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V";
+                    method.signature = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation<Ljava/lang/Void;>;)V";
+                    method.parameters.remove(2);
+                    method.localVariables.remove(3);
+                    method.maxLocals--;
+                }
+            }
+
+            changeInjectionAt(
+                    node,
+                    "wathe$disableSetSpawnpoint",
+                    WRAP_OPERATION,
+                    "value", "INVOKE",
+                    "target", "Lnet/minecraft/server/level/ServerPlayer;setRespawnPosition(Lnet/minecraft/server/level/ServerPlayer$RespawnConfig;Z)V"
+            );
+
+            for (MethodNode method : node.methods) {
+                if (method.name.equals("wathe$disableSetSpawnpoint")) {
+                    method.desc = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/level/ServerPlayer$RespawnConfig;ZLcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V";
+                    method.signature = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/level/ServerPlayer$RespawnConfig;ZLcom/llamalad7/mixinextras/injector/wrapoperation/Operation<Ljava/lang/Void;>;)V";
+
+                    method.parameters.clear();
+                    method.parameters.add(new ParameterNode("instance", 0));
+                    method.parameters.add(new ParameterNode("respawnConfig", 0));
+                    method.parameters.add(new ParameterNode("showMessage", 0));
+
+                    method.visibleParameterAnnotations = (List<AnnotationNode>[]) new List<?>[4];
+                    method.invisibleParameterAnnotations = (List<AnnotationNode>[]) new List<?>[4];
+                    method.invisibleTypeAnnotations.clear();
+
+                    method.localVariables.removeIf(local -> local.index >= 2 && local.index <= 5);
+                    var first = method.localVariables.getFirst();
+                    method.localVariables.add(2, new LocalVariableNode(
+                            "respawnConfig",
+                            "Lnet/minecraft/server/level/ServerPlayer$RespawnConfig;",
+                            null,
+                            first.start,
+                            first.end,
+                            2
+                    ));
+                    method.localVariables.get(3).index -= 3;
+                    method.localVariables.get(4).index -= 3;
+
+                    method.maxLocals = 5;
+                }
+            }
+
+            changeInjectionAt(
+                    node,
+                    "wathe$allowSleepingAtAnyTime",
+                    MODIFY_EXPRESSION_VALUE,
+                    "value", "INVOKE",
+                    "target", "Lnet/minecraft/world/attribute/BedRule;canSleep(Lnet/minecraft/world/level/Level;)Z"
             );
         });
         register(List.of(
