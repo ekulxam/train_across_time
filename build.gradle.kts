@@ -140,7 +140,11 @@ val clearTemplateIntermediaryClasses by tasks.registering {
     val outputDir = layout.projectDirectory.dir("run/.template_intermediary")
 
     doLast {
-        if (!outputDir.asFile.deleteRecursively()) {
+        val folder = outputDir.asFile
+        if (!folder.exists()) {
+            return@doLast
+        }
+        if (!folder.deleteRecursively()) {
             println("(Template Intermediary) Failed to delete all files in $outputDir")
         }
     }
