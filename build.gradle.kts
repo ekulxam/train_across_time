@@ -1,3 +1,5 @@
+import net.fabricmc.loom.configuration.accesswidener.AccessWidenerJarProcessor
+
 plugins {
     java
 
@@ -43,6 +45,7 @@ modstitch {
                 vmArg("-Dtrain_across_time:mappings_output_file=${rootProject.file("src/main/resources/mappings.bin").absolutePath}")
                 ideConfigGenerated(true)
             }
+            enableTransitiveAccessWideners = false
         }
     }
 
@@ -86,10 +89,10 @@ dependencies {
 
     // TODO: versioned deps
 
-    modstitchModRuntimeOnly("dev.doctor4t:wathe:1.3.2-1.21.1") {
+    modstitchModImplementation("dev.doctor4t:wathe:1.3.2-1.21.1") {
         isTransitive = false
     }
-    modstitchModRuntimeOnly("dev.doctor4t:ratatouille:1.4.3-1.21.1") {
+    modstitchModImplementation("dev.doctor4t:ratatouille:1.4.3-1.21.1") {
         isTransitive = false
     }
 
