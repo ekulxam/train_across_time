@@ -15,6 +15,7 @@
  */
 package survivalblock.train_across_time;
 
+import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -27,6 +28,14 @@ public interface TheTrainAcrossTimeConstants {
     String WATHE = "wathe";
     String WATHE_PACKAGE = "dev.doctor4t.wathe";
     LogCategory LOGGER = LogCategory.create("The Train Across Time");
+
+    static void logInfo(String string) {
+        Log.info(LOGGER, string);
+    }
+
+    static void logError(String string, Throwable throwable) {
+        Log.error(LOGGER, string, throwable);
+    }
 
     static String id(String path) {
         return MOD_ID + "." + path;

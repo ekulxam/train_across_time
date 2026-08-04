@@ -20,7 +20,6 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.fabricmc.loader.impl.util.log.Log;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import survivalblock.train_across_time.agent.remap.*;
@@ -35,7 +34,8 @@ import java.security.ProtectionDomain;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER;
+import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.logError;
+import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.logInfo;
 
 /**
  * @author Typho
@@ -46,7 +46,7 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
     public static final ClassOutputInfo.UsedMappingsOutput USED_MAPPINGS_OUTPUT;
 
     static {
-        Log.info(LOGGER, "Committing sins");
+        logInfo("Committing sins");
 
         var mappingsOutputFile = System.getProperty("train_across_time:mappings_output_file");
         USED_MAPPINGS_OUTPUT = mappingsOutputFile == null ? ClassOutputInfo.UsedMappingsOutput.NONE : new ClassOutputInfo.UsedMappingsOutput() {
@@ -84,7 +84,7 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
 
         AgentLoader.loadAgent();
 
-        Log.info(LOGGER, "Successfully loaded java agent " + AgentLoader.INSTRUMENTATION);
+        logInfo("Successfully loaded java agent " + AgentLoader.INSTRUMENTATION);
 
         AgentLoader.INSTRUMENTATION.addTransformer(new ClassFileTransformer() {
             @Override
@@ -114,7 +114,11 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
 
                     var writer = new ClassWriter(0);
                     node.accept(writer);
-                    return writer.toByteArray();
+                    byte[] bytes = writer.toByteArray();
+
+                    tryWriteOutput(className, classfileBuffer, bytes);
+
+                    return bytes;
                 }
 
                 if (!(className.startsWith("dev/doctor4t/wathe") || className.startsWith("dev/doctor4t/ratatouille"))) {
@@ -135,14 +139,22 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
                         bytes = writer.toByteArray();
                     }
 
-                    debugSaveClass(className, () -> bytes == null ? classfileBuffer : bytes);
+                    tryWriteOutput(className, classfileBuffer, bytes);
 
                     return bytes;
                 } catch (Exception e) {
-                    Log.error(LOGGER, "Error while processing " + className, e);
+                    logError("Error while processing " + className, e);
                 }
 
                 return null;
+            }
+
+            public void tryWriteOutput(String className, byte[] classfileBuffer, byte[] bytes) {
+                try {
+                    debugSaveClass(className, () -> bytes == null ? classfileBuffer : bytes);
+                } catch (IOException e) {
+                    logError("Error while writing " + className + " to debug output!", e);
+                }
             }
         });
     }
@@ -168,19 +180,21 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
             String className,
             Supplier<byte[]> bytes
     ) throws IOException {
-        if (DEBUG_PATH != null) {
-            var path = DEBUG_PATH.resolve(className + ".class");
-            var folder = path.getParent().toFile();
+        if (DEBUG_PATH == null) {
+            return;
+        }
 
-            if (className.contains("GameConstants")) {
-                System.out.println("Saving " + className + " to " + path);
-            }
+        Path path = DEBUG_PATH.resolve(className + ".class");
+        File folder = path.getParent().toFile();
 
-            if (folder.mkdirs() || folder.exists()) {
-                Files.write(path, bytes.get());
-            } else {
-                throw new FileNotFoundException("File with path " + path + " could not be written to!");
-            }
+        if (className.contains("GameConstants")) {
+            System.out.println("Saving " + className + " to " + path);
+        }
+
+        if (folder.mkdirs() || folder.exists()) {
+            Files.write(path, bytes.get());
+        } else {
+            throw new FileNotFoundException("File with path " + path + " could not be written to!");
         }
     }
 
@@ -204,7 +218,7 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
 
             return node;
         } catch (Exception e) {
-            Log.error(LOGGER, "Error while processing mixin " + oldNode.name, e);
+            logError("Error while processing mixin " + oldNode.name, e);
         }
 
         return oldNode;
@@ -213,7 +227,7 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
     public static void nukeAW(String modId) {
         ModContainer container = FabricLoader.getInstance().getModContainer(modId).orElseThrow();
         ModMetadata metadata = container.getMetadata();
-        Log.info(LOGGER, modId + " metadata is an instance of " + metadata.getClass());
+        logInfo(modId + " metadata is an instance of " + metadata.getClass());
 
         try {
             Field classTweaker = metadata.getClass().getDeclaredField("classTweaker");
@@ -223,7 +237,7 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
             throw new RuntimeException(e);
         }
 
-        Log.info(LOGGER, "Successfully nuked access widener of mod " + modId);
+        logInfo("Successfully nuked access widener of mod " + modId);
     }
 
     @Override

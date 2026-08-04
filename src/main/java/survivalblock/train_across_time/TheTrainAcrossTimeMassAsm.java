@@ -15,10 +15,6 @@
  */
 package survivalblock.train_across_time;
 
-import de.zonlykroks.massasmer.MassASMTransformer;
-
-import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.*;
-
 public class TheTrainAcrossTimeMassAsm implements Runnable {
     @Override
     public void run() {

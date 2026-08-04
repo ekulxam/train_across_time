@@ -5,7 +5,6 @@ import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
 import dev.doctor4t.wathe.index.WatheDataComponentTypes;
 import dev.doctor4t.wathe.item.CocktailItem;
-import net.fabricmc.loader.impl.util.log.Log;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
@@ -19,11 +18,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import survivalblock.train_across_time.TheTrainAcrossTimeConstants;
 import survivalblock.train_across_time.util.TrainAcrossTimeMixinHelper;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
+
+import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.logError;
 
 @Mixin(FoodProperties.class)
 public class FoodPropertiesMixin {
@@ -54,7 +54,7 @@ public class FoodPropertiesMixin {
             } catch (ReflectiveOperationException | ClassCastException e) {
                 if (!TrainAcrossTimeMixinHelper.warnOnMissingPoisonBounds) {
                     TrainAcrossTimeMixinHelper.warnOnMissingPoisonBounds = true;
-                    Log.error(TheTrainAcrossTimeConstants.LOGGER, "Could not access PlayerPoisonComponent.clampTime! This will only log once!", e);
+                    logError("Could not access PlayerPoisonComponent.clampTime! This will only log once!", e);
                 }
             }
 
@@ -64,7 +64,7 @@ public class FoodPropertiesMixin {
             } catch (ReflectiveOperationException | ClassCastException e) {
                 if (!TrainAcrossTimeMixinHelper.warnOnMissingPoisonDataComponent) {
                     TrainAcrossTimeMixinHelper.warnOnMissingPoisonDataComponent = true;
-                    Log.error(TheTrainAcrossTimeConstants.LOGGER, "Could not access WatheDataComponentTypes.POISONER! This will only log once!", e);
+                    logError("Could not access WatheDataComponentTypes.POISONER! This will only log once!", e);
                 }
             }
 

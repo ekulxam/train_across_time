@@ -179,7 +179,7 @@ dependencies {
     modstitchModCompileOnly("maven.modrinth:sodium:mc26.1.2-0.9.2-alpha.3-fabric")
     modstitchModCompileOnly("maven.modrinth:iris:1.11.2+26.1-fabric")
 
-    include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
+    //include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
 
     implementation("net.fabricmc:tiny-remapper:0.14.0")
 

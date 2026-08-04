@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER;
+import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.logInfo;
 
 /**
  * @author Typho
@@ -398,7 +398,7 @@ public class WatheClassPatches {
         ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
-                    Log.info(LOGGER, "Injecting item ids into RatatouilleItems");
+                    logInfo("Injecting item ids into RatatouilleItems");
                     applyItemIds(method, Map.of());
                     info.computeMaxStackSizes();
                 }
@@ -409,7 +409,7 @@ public class WatheClassPatches {
         ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
-                    Log.info(LOGGER, "Injecting block ids into RatatouilleBlocks");
+                    logInfo("Injecting block ids into RatatouilleBlocks");
                     applyBlockIds(method, Map.of());
                     info.computeMaxStackSizes();
                 }
@@ -420,7 +420,7 @@ public class WatheClassPatches {
         ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
-                    Log.info(LOGGER, "Injecting item ids into WatheItems");
+                    logInfo("Injecting item ids into WatheItems");
                     applyItemIds(method, Map.of(
                             2, "knife"
                     ));
@@ -433,7 +433,7 @@ public class WatheClassPatches {
         ), (node, info) -> {
             for (MethodNode method : node.methods) {
                 if (method.name.equals("<clinit>")) {
-                    Log.info(LOGGER, "Injecting block ids into WatheBlocks");
+                    logInfo("Injecting block ids into WatheBlocks");
                     applyBlockIds(method, Map.of());
                     info.computeMaxStackSizes();
                 } else if (method.name.equals("createBranch")) {
