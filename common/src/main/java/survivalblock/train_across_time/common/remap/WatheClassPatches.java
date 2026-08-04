@@ -31,6 +31,11 @@ public class WatheClassPatches {
     private WatheClassPatches() {
     }
 
+    public static final String AT = "Lorg/spongepowered/asm/mixin/injection/At;";
+    public static final String MODIFY_EXPRESSION_VALUE = "Lcom/llamalad7/mixinextras/injector/ModifyExpressionValue;";
+    public static final String WRAP_OPERATION = "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;";
+    public static final String INJECT = "Lorg/spongepowered/asm/mixin/injection/Inject;";
+
     public static final Map<String, BiConsumer<ClassNode, ClassOutputInfo>> PATCHES = new HashMap<>();
 
     public static void register(List<String> classes, BiConsumer<ClassNode, ClassOutputInfo> patch) {
@@ -169,10 +174,10 @@ public class WatheClassPatches {
 
     public static void tweakNBTSaveMethod(
             ClassNode node,
-            String name
+            String methodName
     ) {
         for (MethodNode method : node.methods) {
-            if (method.name.equals(name)) {
+            if (method.name.equals(methodName)) {
                 method.desc = method.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
 
                 for (var insn : method.instructions) {
@@ -187,16 +192,72 @@ public class WatheClassPatches {
 
     public static void tweakNBTLoadMethod(
             ClassNode node,
-            String name
+            String methodName
     ) {
         for (MethodNode method : node.methods) {
-            if (method.name.equals(name)) {
+            if (method.name.equals(methodName)) {
                 method.desc = method.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
 
                 for (var insn : method.instructions) {
                     if (insn instanceof MethodInsnNode methodInsnNode) {
                         methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueInput");
                         methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+                    }
+                }
+            }
+        }
+    }
+
+    public static void changeInjectionMethod(
+            ClassNode node,
+            String methodName,
+            String injectionDesc,
+            String... newMethod
+    ) {
+        for (MethodNode method : node.methods) {
+            if (method.name.equals(methodName)) {
+                for (AnnotationNode anno : method.visibleAnnotations) {
+                    if (anno.desc.equals(injectionDesc)) {
+                        var iterator = anno.values.listIterator();
+
+                        while (iterator.hasNext()) {
+                            var name = (String) iterator.next();
+                            var value = iterator.next();
+
+                            if (name.equals("method")) {
+                                iterator.set(new ArrayList<>(Arrays.asList(newMethod)));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static void changeInjectionAt(
+            ClassNode node,
+            String methodName,
+            String injectionDesc,
+            Object... newAt
+    ) {
+        for (MethodNode method : node.methods) {
+            if (method.name.equals(methodName)) {
+                for (AnnotationNode anno : method.visibleAnnotations) {
+                    if (anno.desc.equals(injectionDesc)) {
+                        var iterator = anno.values.listIterator();
+
+                        while (iterator.hasNext()) {
+                            var name = (String) iterator.next();
+                            var value = iterator.next();
+
+                            if (name.equals("at")) {
+                                var newAnno = new AnnotationNode(Opcodes.ASM9, AT);
+                                newAnno.values = new ArrayList<>(Arrays.asList(newAt));
+                                iterator.set(newAnno);
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -648,6 +709,13 @@ public class WatheClassPatches {
                 "dev/doctor4t/wathe/mixin/PlayerEntityMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("wathe$poisonedFoodEffect") || method.name.equals("wathe$eat"));
+            changeInjectionAt(
+                    node,
+                    "wathe$cancelWakingUpPlayers",
+                    MODIFY_EXPRESSION_VALUE,
+                    "value", "INVOKE",
+                    "target", "Lnet/minecraft/world/attribute/BedRule;canSleep(Lnet/minecraft/world/level/Level;)Z"
+            );
 
             tweakNBTSaveMethod(node, "wathe$saveData");
             tweakNBTLoadMethod(node, "wathe$readData");
@@ -655,30 +723,13 @@ public class WatheClassPatches {
         register(List.of(
                 "dev/doctor4t/wathe/mixin/client/MinecraftClientMixin"
         ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("wathe$invalid")) {
-                    for (AnnotationNode anno : method.visibleAnnotations) {
-                        if (anno.desc.equals("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;")) {
-                            var iterator = anno.values.listIterator();
-
-                            while (iterator.hasNext()) {
-                                var name = (String) iterator.next();
-                                var value = iterator.next();
-
-                                if (name.equals("at")) {
-                                    var newAt = new AnnotationNode(Opcodes.ASM9, "Lorg/spongepowered/asm/mixin/injection/At;");
-                                    newAt.values = new ArrayList<>(List.of(
-                                            "value", "INVOKE",
-                                            "target", "Lnet/minecraft/world/entity/player/Inventory;setSelectedSlot(I)V"
-                                    ));
-                                    iterator.set(newAt);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            changeInjectionAt(
+                    node,
+                    "wathe$invalid",
+                    WRAP_OPERATION,
+                    "value", "INVOKE",
+                    "target", "Lnet/minecraft/world/entity/player/Inventory;setSelectedSlot(I)V"
+            );
         });
         register(List.of(
                 "dev/doctor4t/wathe/mixin/client/items/ClientPlayerEntityMixin"
@@ -688,25 +739,12 @@ public class WatheClassPatches {
         register(List.of(
                 "dev/doctor4t/wathe/mixin/client/AbstractClientPlayerEntityMixin"
         ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("wathe$fovPulse")) {
-                    for (AnnotationNode anno : method.visibleAnnotations) {
-                        if (anno.desc.equals("Lorg/spongepowered/asm/mixin/injection/Inject;")) {
-                            var iterator = anno.values.listIterator();
-
-                            while (iterator.hasNext()) {
-                                var name = (String) iterator.next();
-                                var value = iterator.next();
-
-                                if (name.equals("method")) {
-                                    iterator.set(new ArrayList<>(List.of("getFieldOfViewModifier(ZF)F")));
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            changeInjectionMethod(
+                    node,
+                    "wathe$fovPulse",
+                    INJECT,
+                    "getFieldOfViewModifier(ZF)F"
+            );
         });
         register(List.of(
                 TATConstants.MIXIN_INFO_CLASS

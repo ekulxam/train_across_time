@@ -16,7 +16,6 @@ import java.io.InputStream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 
 @CacheableTransform
 public abstract class TATTransform implements TransformAction<TATTransform.Parameters> {
@@ -29,7 +28,7 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
     @Override
     public void transform(@NonNull TransformOutputs outputs) {
         var inFile = getInput().get().getAsFile();
-        var outFile = outputs.file(inFile.getName().substring(0, inFile.getName().lastIndexOf('.')) + "-neo-tweaked.jar");
+        var outFile = outputs.file(inFile.getName().substring(0, inFile.getName().lastIndexOf('.')) + "-tat-tweaked.jar");
         var modified = false;
 
         try (JarFile jar = new JarFile(inFile, false)) {
