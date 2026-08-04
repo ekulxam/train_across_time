@@ -17,8 +17,7 @@
   ],
   "client": [
     "ClientLevelMixin",
-    "LocalPlayerMixin",
-    "NoteItemMixin"
+    "LocalPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

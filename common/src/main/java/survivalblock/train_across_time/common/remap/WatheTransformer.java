@@ -94,8 +94,8 @@ public class WatheTransformer {
 
             return new TransformedClass(node, info);
         } catch (EndClassVisitException ignored) {
-        } catch (Exception e) {
-            TATConstants.PLATFORM.error("Error while processing class " + info.className, e);
+        } catch (Throwable t) {
+            TATConstants.PLATFORM.error("Error while processing class " + info.className, t);
         }
 
         return null;

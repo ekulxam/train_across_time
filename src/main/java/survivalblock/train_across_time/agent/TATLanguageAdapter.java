@@ -67,7 +67,7 @@ public class TATLanguageAdapter implements LanguageAdapter {
         });
     }
 
-    public static ClassNode transformMixin(ClassNode oldNode) {
+    public static ClassNode transformStatic(ClassNode oldNode) {
         var transformed = TRANSFORMER.transform(Opcodes.ASM9, true, oldNode::accept);
 
         if (transformed != null) {

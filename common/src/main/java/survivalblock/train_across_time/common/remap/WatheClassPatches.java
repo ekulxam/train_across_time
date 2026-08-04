@@ -846,6 +846,30 @@ public class WatheClassPatches {
             node.methods.removeIf(method -> method.name.equals("tickWithoutFearOfCrashing"));
         });
         register(List.of(
+                TATConstants.CLASS_INFO_CLASS
+        ), (node, info) -> {
+            for (MethodNode method : node.methods) {
+                if (method.name.equals("forName")) {
+                    var ordinal = 0;
+
+                    for (AbstractInsnNode insn : method.instructions) {
+                        if (insn instanceof MethodInsnNode m && m.name.equals("<init>") && ordinal++ == 1) {
+                            var insns = new InsnList();
+                            insns.add(new MethodInsnNode(
+                                    Opcodes.INVOKESTATIC,
+                                    "survivalblock/train_across_time/agent/TATLanguageAdapter",
+                                    "transformStatic",
+                                    "(Lorg/objectweb/asm/tree/ClassNode;)Lorg/objectweb/asm/tree/ClassNode;"
+                            ));
+                            insns.add(new VarInsnNode(Opcodes.ASTORE, 3));
+                            insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
+                            method.instructions.insertBefore(insn, insns);
+                        }
+                    }
+                }
+            }
+        });
+        register(List.of(
                 TATConstants.MIXIN_INFO_CLASS
         ), (node, info) -> {
             for (MethodNode method : node.methods) {
@@ -856,7 +880,7 @@ public class WatheClassPatches {
                             insns.add(new MethodInsnNode(
                                     Opcodes.INVOKESTATIC,
                                     "survivalblock/train_across_time/agent/TATLanguageAdapter",
-                                    "transformMixin",
+                                    "transformStatic",
                                     "(Lorg/objectweb/asm/tree/ClassNode;)Lorg/objectweb/asm/tree/ClassNode;"
                             ));
                             insns.add(new VarInsnNode(Opcodes.ASTORE, 2));

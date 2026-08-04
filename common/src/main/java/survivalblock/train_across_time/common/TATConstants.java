@@ -31,6 +31,7 @@ import java.util.function.Predicate;
 public interface TATConstants {
     String MOD_ID = "train_across_time";
 
+    String CLASS_INFO_CLASS = "org/spongepowered/asm/mixin/transformer/ClassInfo";
     String MIXIN_INFO_CLASS = "org/spongepowered/asm/mixin/transformer/MixinInfo";
 
     String WATHE = "wathe";
@@ -43,6 +44,7 @@ public interface TATConstants {
     List<Predicate<String>> TRANSFORM_PREDICATES = new ArrayList<>(List.of(
             cls -> cls.startsWith(WATHE_PACKAGE),
             cls -> cls.startsWith(RATATOUILLE_PACKAGE),
+            cls -> cls.equals(CLASS_INFO_CLASS),
             cls -> cls.equals(MIXIN_INFO_CLASS)
     ));
 
