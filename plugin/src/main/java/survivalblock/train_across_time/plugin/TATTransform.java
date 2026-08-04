@@ -45,6 +45,7 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
                     try (InputStream in = jar.getInputStream(entry)) {
                         var bytes = in.readAllBytes();
                         var newBytes = bytes;
+                        var entryName = entry.getName();
 
                         if (entry.getName().endsWith(".class")) {
                             var transformed = TRANSFORMER.transform(Opcodes.ASM9, false, visitor -> {
@@ -61,11 +62,13 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
                                         modified = true;
                                         TATConstants.PLATFORM.info("Transforming jar " + inFile);
                                     }
+
+                                    entryName = transformed.node().name + ".class";
                                 }
                             }
                         }
 
-                        out.putNextEntry(new JarEntry(entry));
+                        out.putNextEntry(new JarEntry(entryName));
                         out.write(newBytes);
                         out.closeEntry();
                     }

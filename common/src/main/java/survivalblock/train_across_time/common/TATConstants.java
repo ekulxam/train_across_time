@@ -42,8 +42,8 @@ public interface TATConstants {
     Platform PLATFORM = ServiceLoader.load(Platform.class).findFirst().orElseThrow();
     List<Predicate<String>> TRANSFORM_PREDICATES = new ArrayList<>(List.of(
             cls -> cls.startsWith(WATHE_PACKAGE),
-            cls -> cls.startsWith(RATATOUILLE_PACKAGE)//,
-            //cls -> cls.equals(MIXIN_INFO_CLASS)
+            cls -> cls.startsWith(RATATOUILLE_PACKAGE),
+            cls -> cls.equals(MIXIN_INFO_CLASS)
     ));
 
     static boolean shouldTransformClass(String className) {

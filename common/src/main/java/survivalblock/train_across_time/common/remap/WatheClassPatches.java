@@ -17,8 +17,10 @@ package survivalblock.train_across_time.common.remap;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
+import org.objectweb.asm.util.TraceClassVisitor;
 import survivalblock.train_across_time.common.TATConstants;
 
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -33,6 +35,7 @@ public class WatheClassPatches {
 
     public static final String AT = "Lorg/spongepowered/asm/mixin/injection/At;";
     public static final String MODIFY_EXPRESSION_VALUE = "Lcom/llamalad7/mixinextras/injector/ModifyExpressionValue;";
+    public static final String MODIFY_RETURN_VALUE = "Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;";
     public static final String WRAP_OPERATION = "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;";
     public static final String INJECT = "Lorg/spongepowered/asm/mixin/injection/Inject;";
 
@@ -564,6 +567,8 @@ public class WatheClassPatches {
                 for (var instruction : method.instructions) {
                     if (instruction instanceof FieldInsnNode field && field.owner.equals(node.name) && field.name.equals("stack")) {
                         field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
+                    } else if (instruction instanceof MethodInsnNode m && m.name.equals("<init>") && method.name.equals("<init>")) {
+                        m.desc = m.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
                     }
                 }
 
@@ -643,7 +648,8 @@ public class WatheClassPatches {
                 "dev/doctor4t/wathe/item/GrenadeItem",
                 "dev/doctor4t/wathe/item/KnifeItem",
                 "dev/doctor4t/wathe/item/NoteItem",
-                "dev/doctor4t/wathe/item/RevolverItem"
+                "dev/doctor4t/wathe/item/RevolverItem",
+                "dev/doctor4t/wathe/mixin/client/self/NoteItemMixin"
         ), (node, info) -> {
             for (MethodNode methodNode : node.methods) {
                 // WHY IS KNIFEITEM STILL NOT WORKING
@@ -789,44 +795,7 @@ public class WatheClassPatches {
                 }
             }
 
-            changeInjectionAt(
-                    node,
-                    "wathe$disableSetSpawnpoint",
-                    WRAP_OPERATION,
-                    "value", "INVOKE",
-                    "target", "Lnet/minecraft/server/level/ServerPlayer;setRespawnPosition(Lnet/minecraft/server/level/ServerPlayer$RespawnConfig;Z)V"
-            );
-
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("wathe$disableSetSpawnpoint")) {
-                    method.desc = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/level/ServerPlayer$RespawnConfig;ZLcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V";
-                    method.signature = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/level/ServerPlayer$RespawnConfig;ZLcom/llamalad7/mixinextras/injector/wrapoperation/Operation<Ljava/lang/Void;>;)V";
-
-                    method.parameters.clear();
-                    method.parameters.add(new ParameterNode("instance", 0));
-                    method.parameters.add(new ParameterNode("respawnConfig", 0));
-                    method.parameters.add(new ParameterNode("showMessage", 0));
-
-                    method.visibleParameterAnnotations = (List<AnnotationNode>[]) new List<?>[4];
-                    method.invisibleParameterAnnotations = (List<AnnotationNode>[]) new List<?>[4];
-                    method.invisibleTypeAnnotations.clear();
-
-                    method.localVariables.removeIf(local -> local.index >= 2 && local.index <= 5);
-                    var first = method.localVariables.getFirst();
-                    method.localVariables.add(2, new LocalVariableNode(
-                            "respawnConfig",
-                            "Lnet/minecraft/server/level/ServerPlayer$RespawnConfig;",
-                            null,
-                            first.start,
-                            first.end,
-                            2
-                    ));
-                    method.localVariables.get(3).index -= 3;
-                    method.localVariables.get(4).index -= 3;
-
-                    method.maxLocals = 5;
-                }
-            }
+            node.methods.removeIf(method -> method.name.equals("wathe$disableSetSpawnpoint"));
 
             changeInjectionAt(
                     node,
@@ -835,6 +804,46 @@ public class WatheClassPatches {
                     "value", "INVOKE",
                     "target", "Lnet/minecraft/world/attribute/BedRule;canSleep(Lnet/minecraft/world/level/Level;)Z"
             );
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/ItemMixin"
+        ), (node, info) -> {
+            node.methods.removeIf(method -> method.name.equals("arsenal$setTridentOwner"));
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/PlayerInventoryMixin"
+        ), (node, info) -> {
+            node.methods.removeIf(method -> method.name.equals("wathe$invalid"));
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/client/restrictions/KeyBindingMixin"
+        ), (node, info) -> {
+            changeInjectionMethod(
+                    node,
+                    "wathe$restrainMatchesKey",
+                    MODIFY_RETURN_VALUE,
+                    "matches(Lnet/minecraft/client/input/KeyEvent;)Z"
+            );
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/client/scenery/ClientWorldMixin"
+        ), (node, info) -> {
+            node.methods.removeIf(method -> method.name.equals("wathe$addCustomBlockMarkers"));
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/client/self/NoteItemMixin"
+        ), (node, info) -> {
+            node.methods.removeIf(method -> method.name.equals("useClient"));
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/client/self/TrimmedBedBlockEntityMixin"
+        ), (node, info) -> {
+            node.methods.removeIf(method -> method.name.equals("tickOnClientSide"));
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/client/self/BeveragePlateBlockEntityMixin"
+        ), (node, info) -> {
+            node.methods.removeIf(method -> method.name.equals("tickWithoutFearOfCrashing"));
         });
         register(List.of(
                 TATConstants.MIXIN_INFO_CLASS

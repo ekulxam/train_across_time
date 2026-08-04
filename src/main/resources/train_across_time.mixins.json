@@ -5,14 +5,20 @@
   "mixins": [
     "FoodPropertiesMixin",
     "GameConstantsMixin",
+    "InventoryMixin",
+    "ItemMixin",
     "RatatouilleItemsMixin",
     "WatheMixin",
     "nbt.NoteEntityMixin",
     "nbt.PlayerBodyEntityMixin",
-    "nbt.SeatEntityMixin"
+    "nbt.SeatEntityMixin",
+    "ServerPlayerMixin",
+    "WatheMixin"
   ],
   "client": [
-    "LocalPlayerMixin"
+    "ClientLevelMixin",
+    "LocalPlayerMixin",
+    "NoteItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

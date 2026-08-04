@@ -6,7 +6,13 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(targets = "dev.doctor4t.ratatouille.index.RatatouilleItems")
 public interface RatatouilleItemsMixin {
-    @ModifyExpressionValue(method = "*", at = @At(value = "INVOKE", target = "Lnet/fabricmc/loader/api/FabricLoader;isDevelopmentEnvironment()Z"))
+    @ModifyExpressionValue(
+            method = "<clinit>",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/fabricmc/loader/api/FabricLoader;isDevelopmentEnvironment()Z"
+            )
+    )
     private static boolean noArmorItem(boolean original) {
         return false;
     }
