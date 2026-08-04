@@ -169,6 +169,42 @@ public class WatheClassPatches {
         });
     }
 
+    public static void tweakNBTSaveMethod(
+            ClassNode node,
+            String name
+    ) {
+        for (MethodNode method : node.methods) {
+            if (method.name.equals(name)) {
+                method.desc = method.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
+
+                for (var insn : method.instructions) {
+                    if (insn instanceof MethodInsnNode methodInsnNode) {
+                        methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueOutput");
+                        methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
+                    }
+                }
+            }
+        }
+    }
+
+    public static void tweakNBTLoadMethod(
+            ClassNode node,
+            String name
+    ) {
+        for (MethodNode method : node.methods) {
+            if (method.name.equals(name)) {
+                method.desc = method.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+
+                for (var insn : method.instructions) {
+                    if (insn instanceof MethodInsnNode methodInsnNode) {
+                        methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueInput");
+                        methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+                    }
+                }
+            }
+        }
+    }
+
     static {
         register(List.of(
                 "dev/doctor4t/wathe/cca/AutoStartComponent",
@@ -512,31 +548,14 @@ public class WatheClassPatches {
         register(List.of(
                 "dev/doctor4t/wathe/entity/PlayerBodyEntity"
         ), (node, info) -> {
+            tweakNBTSaveMethod(node, "addAdditionalSaveData");
+            tweakNBTLoadMethod(node, "readAdditionalSaveData");
+
             for (MethodNode methodNode : node.methods) {
-                switch (methodNode.name) {
-                    case "<clinit>" -> {
-                        for (var insn : methodNode.instructions) {
-                            if (insn instanceof FieldInsnNode fieldInsnNode && fieldInsnNode.owner.equals("net/minecraft/network/syncher/EntityDataSerializers") && fieldInsnNode.name.equals("OPTIONAL_UUID")) {
-                                fieldInsnNode.owner = "survivalblock/train_across_time/TrainAcrossTime";
-                            }
-                        }
-                    }
-                    case "addAdditionalSaveData" -> {
-                        methodNode.desc = methodNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
-                        for (var insn : methodNode.instructions) {
-                            if (insn instanceof MethodInsnNode methodInsnNode) {
-                                methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueOutput");
-                                methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
-                            }
-                        }
-                    }
-                    case "readAdditionalSaveData" -> {
-                        methodNode.desc = methodNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
-                        for (var insn : methodNode.instructions) {
-                            if (insn instanceof MethodInsnNode methodInsnNode) {
-                                methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueInput");
-                                methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
-                            }
+                if (methodNode.name.equals("<clinit>")) {
+                    for (var insn : methodNode.instructions) {
+                        if (insn instanceof FieldInsnNode fieldInsnNode && fieldInsnNode.owner.equals("net/minecraft/network/syncher/EntityDataSerializers") && fieldInsnNode.name.equals("OPTIONAL_UUID")) {
+                            fieldInsnNode.owner = "survivalblock/train_across_time/TrainAcrossTime";
                         }
                     }
                 }
@@ -630,7 +649,38 @@ public class WatheClassPatches {
         register(List.of(
                 "dev/doctor4t/wathe/mixin/PlayerEntityMixin"
         ), (node, info) -> {
-            node.methods.removeIf(method -> method.name.equals("wathe$poisonedFoodEffect"));
+            node.methods.removeIf(method -> method.name.equals("wathe$poisonedFoodEffect") || method.name.equals("wathe$eat"));
+
+            tweakNBTSaveMethod(node, "wathe$saveData");
+            tweakNBTLoadMethod(node, "wathe$readData");
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/client/MinecraftClientMixin"
+        ), (node, info) -> {
+            for (MethodNode method : node.methods) {
+                if (method.name.equals("wathe$invalid")) {
+                    for (AnnotationNode anno : method.visibleAnnotations) {
+                        if (anno.desc.equals("Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;")) {
+                            var iterator = anno.values.listIterator();
+
+                            while (iterator.hasNext()) {
+                                var name = (String) iterator.next();
+                                var value = iterator.next();
+
+                                if (name.equals("at")) {
+                                    var newAt = new AnnotationNode(Opcodes.ASM9, "Lorg/spongepowered/asm/mixin/injection/At;");
+                                    newAt.values = new ArrayList<>(List.of(
+                                            "value", "INVOKE",
+                                            "target", "Lnet/minecraft/world/entity/player/Inventory;setSelectedSlot(I)V"
+                                    ));
+                                    iterator.set(newAt);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         });
         /*
         register(List.of(

@@ -15,6 +15,7 @@
  */
 package survivalblock.train_across_time.agent.remap;
 
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Remapper;
 
 /**

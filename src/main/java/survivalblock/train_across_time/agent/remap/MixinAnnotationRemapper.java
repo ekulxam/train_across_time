@@ -49,28 +49,47 @@ public class MixinAnnotationRemapper extends AnnotationRemapper {
             if (value instanceof String string) {
                 if (descriptor != null && ACCESSOR_TYPES.contains(descriptor)) {
                     var presumedOwner = mixinTargets.stream().findAny().orElseThrow().getInternalName();
-                    value = remapper.mapMethodName(presumedOwner, remapper.mapFieldName(presumedOwner, string, "Ljava/lang/Object;"), "()V");
-                } else if (string.contains("(")) { // method descriptor
+                    string = remapper.mapMethodName(presumedOwner, remapper.mapFieldName(presumedOwner, string, "Ljava/lang/Object;"), "()V");
+                } else if (string.contains("(")) { // method
                     var index = string.indexOf('(');
                     var methodName = string.substring(0, index);
                     var methodDesc = string.substring(index);
 
                     if (methodName.isEmpty()) {
-                        value = remapper.mapMethodDesc(methodDesc);
+                        string = remapper.mapMethodDesc(methodDesc);
                     } else if (methodName.contains(";")) {
                         var index1 = methodName.indexOf(';') + 1;
 
-                        var methodOwner = Type.getType(methodName.substring(0, index1)).getInternalName();
+                        var methodOwner = Type.getType(methodName.substring(0, index1));
                         methodName = methodName.substring(index1);
 
-                        value = "L" + remapper.map(methodOwner) + ";" + remapper.mapMethodName(methodOwner, methodName, methodDesc) + remapper.mapMethodDesc(methodDesc);
+                        string = remapper.mapValue(methodOwner) + remapper.mapMethodName(methodOwner.getInternalName(), methodName, methodDesc) + remapper.mapMethodDesc(methodDesc);
                     } else {
                         var presumedOwner = mixinTargets.stream().findAny().orElseThrow().getInternalName();
-                        value = remapper.mapMethodName(presumedOwner, methodName, methodDesc) + remapper.mapMethodDesc(methodDesc);
+                        string = remapper.mapMethodName(presumedOwner, methodName, methodDesc) + remapper.mapMethodDesc(methodDesc);
+                    }
+                } else if (string.contains(":")) { // field
+                    var index = string.indexOf(':');
+                    var fieldName = string.substring(0, index);
+                    var fieldDesc = string.substring(index + 1);
+
+                    if (fieldName.contains(";")) {
+                        var index1 = fieldName.indexOf(';');
+                        var fieldOwner = Type.getType(fieldName.substring(0, index1 + 1));
+                        string = remapper.mapValue(fieldOwner) + remapper.mapFieldName(fieldOwner.getInternalName(), fieldName.substring(index1 + 1), fieldDesc) + ":" + remapper.mapValue(Type.getType(fieldDesc));
+                    } else {
+                        var presumedOwner = mixinTargets.stream().findAny().orElseThrow().getInternalName();
+                        string = remapper.mapFieldName(presumedOwner, fieldName, fieldDesc) + ":" + remapper.map(fieldDesc);
                     }
                 } else if (string.startsWith("L") && string.endsWith(";")) {
-                    value = remapper.mapType(string);
+                    string = remapper.mapValue(Type.getType(string)).toString();
                 }
+
+                value = switch (string) {
+                    case "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V" -> "addAdditionalSaveData(Lnet/minecraft/world/level/storage/ValueOutput;)V";
+                    case "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V" -> "readAdditionalSaveData(Lnet/minecraft/world/level/storage/ValueInput;)V";
+                    default -> string;
+                };
             }
         }
 

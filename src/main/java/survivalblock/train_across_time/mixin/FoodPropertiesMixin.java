@@ -1,7 +1,6 @@
 package survivalblock.train_across_time.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
@@ -12,8 +11,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.UUID;
 
 @Mixin(FoodProperties.class)
 public class FoodPropertiesMixin {
@@ -33,6 +30,8 @@ public class FoodPropertiesMixin {
             CallbackInfo ci,
             @Local Player player
     ) {
+        // TODO
+        /*
         if (!level.isClientSide()) {
             String poisoner = stack.getOrDefault(WatheDataComponentTypes.POISONER, null);
 
@@ -46,5 +45,10 @@ public class FoodPropertiesMixin {
                 }
             }
         }
+
+        if (!(stack.getItem() instanceof CocktailItem)) {
+            PlayerMoodComponent.KEY.get(player).eatFood();
+        }
+         */
     }
 }
