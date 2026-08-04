@@ -4,6 +4,7 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.item.TrackingItemStackRenderState;
 
+@SuppressWarnings("unused")
 public class ZItemEntityRenderState extends EntityRenderState {
     // need bounding box height, age, hashCode, crosshairPickEntity (from dispatcher)
 

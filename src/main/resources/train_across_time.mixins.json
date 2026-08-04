@@ -6,7 +6,10 @@
     "FoodPropertiesMixin",
     "GameConstantsMixin",
     "RatatouilleItemsMixin",
-    "WatheMixin"
+    "WatheMixin",
+    "nbt.NoteEntityMixin",
+    "nbt.PlayerBodyEntityMixin",
+    "nbt.SeatEntityMixin"
   ],
   "client": [
     "LocalPlayerMixin"

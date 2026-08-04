@@ -174,34 +174,44 @@ public class WatheClassPatches {
 
     public static void tweakNBTSaveMethod(
             ClassNode node,
-            String methodName
+            String methodName,
+            boolean nuke
     ) {
-        for (MethodNode method : node.methods) {
-            if (method.name.equals(methodName)) {
-                method.desc = method.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
-
-                for (var insn : method.instructions) {
-                    if (insn instanceof MethodInsnNode methodInsnNode) {
-                        methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueOutput");
-                        methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueOutput;");
-                    }
-                }
-            }
-        }
+        tweakNBTMethod(node, methodName, "net/minecraft/world/level/storage/ValueOutput", nuke);
     }
 
     public static void tweakNBTLoadMethod(
             ClassNode node,
-            String methodName
+            String methodName,
+            boolean nuke
     ) {
+        tweakNBTMethod(node, methodName, "net/minecraft/world/level/storage/ValueInput", nuke);
+    }
+
+    public static void tweakNBTMethod(
+            ClassNode node,
+            String methodName,
+            String replacementClass,
+            boolean nuke
+    ) {
+        String descriptor = "L" + replacementClass + ";";
         for (MethodNode method : node.methods) {
             if (method.name.equals(methodName)) {
-                method.desc = method.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+                method.desc = method.desc.replace("Lnet/minecraft/nbt/CompoundTag;", descriptor);
 
-                for (var insn : method.instructions) {
-                    if (insn instanceof MethodInsnNode methodInsnNode) {
-                        methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", "net/minecraft/world/level/storage/ValueInput");
-                        methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", "Lnet/minecraft/world/level/storage/ValueInput;");
+                if (nuke) {
+                    method.instructions.clear();
+                    method.instructions.add(new InsnNode(Opcodes.RETURN));
+                    method.localVariables.removeIf(localVariableNode -> !localVariableNode.name.equals("this")  && !localVariableNode.name.equals("nbt"));
+                } else {
+                    for (var insn : method.instructions) {
+                        if (insn instanceof MethodInsnNode methodInsnNode) {
+                            methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", replacementClass);
+                            methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", descriptor);
+                        }
+                    }
+                    for (var local : method.localVariables) {
+                        local.desc = local.desc.replace("Lnet/minecraft/nbt/CompoundTag;", descriptor);
                     }
                 }
             }
@@ -605,16 +615,22 @@ public class WatheClassPatches {
             }
         });
         register(List.of(
+                "dev/doctor4t/wathe/block/entity/SeatEntity",
+                "dev/doctor4t/wathe/entity/FirecrackerEnttiy",
+                "dev/doctor4t/wathe/entity/GrenadeEntity",
+                "dev/doctor4t/wathe/entity/NoteEntity",
                 "dev/doctor4t/wathe/entity/PlayerBodyEntity"
         ), (node, info) -> {
-            tweakNBTSaveMethod(node, "addAdditionalSaveData");
-            tweakNBTLoadMethod(node, "readAdditionalSaveData");
+            tweakNBTSaveMethod(node, "addAdditionalSaveData", !node.name.contains("NoteEntity"));
+            tweakNBTLoadMethod(node, "readAdditionalSaveData", true);
 
-            for (MethodNode methodNode : node.methods) {
-                if (methodNode.name.equals("<clinit>")) {
-                    for (var insn : methodNode.instructions) {
-                        if (insn instanceof FieldInsnNode fieldInsnNode && fieldInsnNode.owner.equals("net/minecraft/network/syncher/EntityDataSerializers") && fieldInsnNode.name.equals("OPTIONAL_UUID")) {
-                            fieldInsnNode.owner = "survivalblock/train_across_time/TrainAcrossTime";
+            if (node.name.contains("PlayerBodyEntity")) {
+                for (MethodNode methodNode : node.methods) {
+                    if (methodNode.name.equals("<clinit>")) {
+                        for (var insn : methodNode.instructions) {
+                            if (insn instanceof FieldInsnNode fieldInsnNode && fieldInsnNode.owner.equals("net/minecraft/network/syncher/EntityDataSerializers") && fieldInsnNode.name.equals("OPTIONAL_UUID")) {
+                                fieldInsnNode.owner = "survivalblock/train_across_time/TrainAcrossTime";
+                            }
                         }
                     }
                 }
@@ -717,8 +733,8 @@ public class WatheClassPatches {
                     "target", "Lnet/minecraft/world/attribute/BedRule;canSleep(Lnet/minecraft/world/level/Level;)Z"
             );
 
-            tweakNBTSaveMethod(node, "wathe$saveData");
-            tweakNBTLoadMethod(node, "wathe$readData");
+            tweakNBTSaveMethod(node, "wathe$saveData", false);
+            tweakNBTLoadMethod(node, "wathe$readData", false);
         });
         register(List.of(
                 "dev/doctor4t/wathe/mixin/client/MinecraftClientMixin"
