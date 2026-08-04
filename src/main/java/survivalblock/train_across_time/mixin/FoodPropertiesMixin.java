@@ -1,6 +1,12 @@
 package survivalblock.train_across_time.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.doctor4t.wathe.cca.PlayerMoodComponent;
+import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
+import dev.doctor4t.wathe.index.WatheDataComponentTypes;
+import dev.doctor4t.wathe.item.CocktailItem;
+import net.minecraft.util.Mth;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
@@ -11,6 +17,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.UUID;
 
 @Mixin(FoodProperties.class)
 public class FoodPropertiesMixin {
@@ -30,25 +38,27 @@ public class FoodPropertiesMixin {
             CallbackInfo ci,
             @Local Player player
     ) {
-        // TODO
-        /*
         if (!level.isClientSide()) {
-            String poisoner = stack.getOrDefault(WatheDataComponentTypes.POISONER, null);
+            String poisoner = stack.get(WatheDataComponentTypes.POISONER);
 
             if (poisoner != null) {
-                int poisonTicks = PlayerPoisonComponent.KEY.get(player).poisonTicks;
+                PlayerPoisonComponent poisonComponent = PlayerPoisonComponent.KEY.get(player);
+                int poisonTicks = poisonComponent.poisonTicks;
 
+                Tuple<Integer, Integer> clampTime = (Tuple<Integer, Integer>) (Object) PlayerPoisonComponent.clampTime;
+                int updated;
                 if (poisonTicks == -1) {
-                    PlayerPoisonComponent.KEY.get(player).setPoisonTicks(level.getRandom().nextIntBetweenInclusive(PlayerPoisonComponent.clampTime.getA(), PlayerPoisonComponent.clampTime.getB()), UUID.fromString(poisoner));
+                    updated = level.getRandom().nextIntBetweenInclusive(clampTime.getA(), clampTime.getB());
                 } else {
-                    PlayerPoisonComponent.KEY.get(player).setPoisonTicks(Mth.clamp(poisonTicks - level.getRandom().nextIntBetweenInclusive(100, 300), 0, PlayerPoisonComponent.clampTime.getB()), UUID.fromString(poisoner));
+                    updated = Mth.clamp(poisonTicks - level.getRandom().nextIntBetweenInclusive(100, 300), 0, clampTime.getB());
                 }
+                poisonComponent.setPoisonTicks(updated, UUID.fromString(poisoner));
             }
         }
 
-        if (!(stack.getItem() instanceof CocktailItem)) {
+        //noinspection ConstantValue
+        if (!(((Object) stack.getItem()) instanceof CocktailItem)) {
             PlayerMoodComponent.KEY.get(player).eatFood();
         }
-         */
     }
 }

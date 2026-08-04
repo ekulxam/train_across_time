@@ -105,10 +105,13 @@ dependencies {
 
     modstitchModImplementation("eu.midnightdust:midnightlib:1.9.3+26.1-fabric")
 
-    modstitchModImplementation("maven.modrinth:cardinal-components-api:8.0.1")
+    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-base:8.0.1")
+    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-level:8.0.1")
+    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-entity:8.0.1")
+    modstitchModImplementation("org.ladysnake.cardinal-components-api:cardinal-components-scoreboard:8.0.1")
 
-    modstitchModImplementation("maven.modrinth:sodium:mc26.1.2-0.9.2-alpha.3-fabric")
-    modstitchModImplementation("maven.modrinth:iris:1.11.2+26.1-fabric")
+    modstitchModCompileOnly("maven.modrinth:sodium:mc26.1.2-0.9.2-alpha.3-fabric")
+    modstitchModCompileOnly("maven.modrinth:iris:1.11.2+26.1-fabric")
 
     include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
 
