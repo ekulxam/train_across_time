@@ -603,5 +603,26 @@ public class WatheClassPatches {
                 }
             }
         });
+        register(List.of(
+                "dev/doctor4t/wathe/client/render/entity/FirecrackerEntityRenderer"
+        ), (node, info) -> {
+            if (node.signature != null) {
+                node.signature = node.signature.substring(0, node.signature.indexOf("<")) + "Ldev/doctor4t/wathe/entity/FirecrackerEntity;Lsurvivalblock/train_across_time/provided/client/FirecrackerEntityRenderState;>";
+            }
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/client/render/entity/NoteEntityRenderer"
+        ), (node, info) -> {
+            if (node.signature != null) {
+                node.signature = node.signature.substring(0, node.signature.indexOf("<")) + "Ldev/doctor4t/wathe/entity/NoteEntity;Lsurvivalblock/train_across_time/provided/client/NoteEntityRenderState;>";
+            }
+        });
+       /*register(List.of(
+                "dev/doctor4t/wathe/client/render/entity/Player"
+        ), (node, info) -> {
+            if (node.signature != null) {
+                node.signature = node.signature.substring(0, node.signature.indexOf("<")) + "Ldev/doctor4t/wathe/entity/NoteEntity;Lsurvivalblock/train_across_time/provided/client/NoteEntityRenderState;>";
+            }
+        });*/
     }
 }
