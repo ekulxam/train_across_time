@@ -7,6 +7,8 @@ import java.util.Objects;
 
 public class TrainAcrossTimeMixinHelper {
     public static final Executable SHOP_ENTRIES_INITIALIZER = new Executable(1);
+    public static boolean warnOnMissingPoisonDataComponent = false;
+    public static boolean warnOnMissingPoisonBounds = false;
 
     /**
      * A wrapper class for {@link Runnable} that can be run a certain amount of times.
