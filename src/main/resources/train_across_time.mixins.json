@@ -3,6 +3,7 @@
   "package": "survivalblock.train_across_time.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
+    "FoodPropertiesMixin",
     "GameConstantsMixin",
     "RatatouilleItemsMixin",
     "WatheMixin"

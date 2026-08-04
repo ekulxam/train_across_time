@@ -47,7 +47,7 @@ public class MixinAnnotationRemapper extends AnnotationRemapper {
     public void visit(String name, Object value) {
         if (!mixinTargets.isEmpty()) {
             if (value instanceof String string) {
-                if (ACCESSOR_TYPES.contains(descriptor)) {
+                if (descriptor != null && ACCESSOR_TYPES.contains(descriptor)) {
                     var presumedOwner = mixinTargets.stream().findAny().orElseThrow().getInternalName();
                     value = remapper.mapMethodName(presumedOwner, remapper.mapFieldName(presumedOwner, string, "Ljava/lang/Object;"), "()V");
                 } else if (string.contains("(")) { // method descriptor

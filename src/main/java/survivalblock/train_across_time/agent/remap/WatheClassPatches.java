@@ -444,7 +444,9 @@ public class WatheClassPatches {
             }
         });
         register(List.of(
-                "dev/doctor4t/wathe/util/ShopEntry"
+                "dev/doctor4t/wathe/util/ShopEntry",
+                "dev/doctor4t/wathe/game/GameConstants$1",
+                "dev/doctor4t/wathe/game/GameConstants$2"
         ), (node, info) -> {
             applyToField(node, "stack", field -> {
                 field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
@@ -455,7 +457,7 @@ public class WatheClassPatches {
                 }
 
                 for (var instruction : method.instructions) {
-                    if (instruction instanceof FieldInsnNode field && field.owner.equals("dev/doctor4t/wathe/util/ShopEntry") && field.name.equals("stack")) {
+                    if (instruction instanceof FieldInsnNode field && field.owner.equals(node.name) && field.name.equals("stack")) {
                         field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
                     }
                 }
@@ -595,8 +597,16 @@ public class WatheClassPatches {
                     for (AbstractInsnNode insn : method.instructions) {
                         if (insn instanceof MethodInsnNode m) {
                             if (m.name.equals("get")) {
-                                m.desc = m.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
-                                m.name = "apply";
+                                method.instructions.set(m, new MethodInsnNode(
+                                        Opcodes.INVOKEINTERFACE,
+                                        "java/util/function/Function",
+                                        "apply",
+                                        "(Ljava/lang/Object;)Ljava/lang/Object;"
+                                ));
+                            }
+                        } else if (insn instanceof FieldInsnNode field) {
+                            if (field.name.equals("SHAPES")) {
+                                field.desc = field.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
                             }
                         }
                     }
@@ -617,12 +627,19 @@ public class WatheClassPatches {
                 node.signature = node.signature.substring(0, node.signature.indexOf("<")) + "Ldev/doctor4t/wathe/entity/NoteEntity;Lsurvivalblock/train_across_time/provided/client/NoteEntityRenderState;>";
             }
         });
-       /*register(List.of(
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/PlayerEntityMixin"
+        ), (node, info) -> {
+            node.methods.removeIf(method -> method.name.equals("wathe$poisonedFoodEffect"));
+        });
+        /*
+        register(List.of(
                 "dev/doctor4t/wathe/client/render/entity/Player"
         ), (node, info) -> {
             if (node.signature != null) {
                 node.signature = node.signature.substring(0, node.signature.indexOf("<")) + "Ldev/doctor4t/wathe/entity/NoteEntity;Lsurvivalblock/train_across_time/provided/client/NoteEntityRenderState;>";
             }
-        });*/
+        });
+        */
     }
 }

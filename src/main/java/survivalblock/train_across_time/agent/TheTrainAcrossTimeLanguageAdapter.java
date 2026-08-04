@@ -172,6 +172,10 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
             var path = DEBUG_PATH.resolve(className + ".class");
             var folder = path.getParent().toFile();
 
+            if (className.contains("GameConstants")) {
+                System.out.println("Saving " + className + " to " + path);
+            }
+
             if (folder.mkdirs() || folder.exists()) {
                 Files.write(path, bytes.get());
             } else {
