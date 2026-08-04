@@ -682,6 +682,34 @@ public class WatheClassPatches {
                 }
             }
         });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/client/items/ClientPlayerEntityMixin"
+        ), (node, info) -> {
+            node.methods.removeIf(method -> method.name.equals("wathe$disableItemSlowdown"));
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/client/AbstractClientPlayerEntityMixin"
+        ), (node, info) -> {
+            for (MethodNode method : node.methods) {
+                if (method.name.equals("wathe$fovPulse")) {
+                    for (AnnotationNode anno : method.visibleAnnotations) {
+                        if (anno.desc.equals("Lorg/spongepowered/asm/mixin/injection/Inject;")) {
+                            var iterator = anno.values.listIterator();
+
+                            while (iterator.hasNext()) {
+                                var name = (String) iterator.next();
+                                var value = iterator.next();
+
+                                if (name.equals("method")) {
+                                    iterator.set(new ArrayList<>(List.of("getFieldOfViewModifier(ZF)F")));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
         /*
         register(List.of(
                 "dev/doctor4t/wathe/client/render/entity/Player"
