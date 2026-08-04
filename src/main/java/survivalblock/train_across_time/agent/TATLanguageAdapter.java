@@ -55,7 +55,6 @@ public class TATLanguageAdapter implements LanguageAdapter {
                 });
 
                 if (transformed == null) {
-                    TRANSFORMER.debugSaveClass(className, () -> classfileBuffer);
                     return null;
                 }
 
@@ -71,13 +70,7 @@ public class TATLanguageAdapter implements LanguageAdapter {
     public static ClassNode transformMixin(ClassNode oldNode) {
         var transformed = TRANSFORMER.transform(Opcodes.ASM9, true, oldNode::accept);
 
-        if (transformed == null) {
-            TRANSFORMER.debugSaveClass(oldNode.name, () -> {
-                var writer = new ClassWriter(0);
-                oldNode.accept(writer);
-                return writer.toByteArray();
-            });
-        } else {
+        if (transformed != null) {
             TRANSFORMER.debugSaveClass(oldNode.name, transformed::toByteArray);
             return transformed.node();
         }

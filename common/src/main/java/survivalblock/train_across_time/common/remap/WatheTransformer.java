@@ -19,7 +19,6 @@ import java.util.function.Supplier;
  * @author Typho
  */
 public class WatheTransformer {
-    // FabricLoader.getInstance().isDevelopmentEnvironment() ? FabricLoader.getInstance().getGameDir().toAbsolutePath().resolve(".wathe_port_debug") : null
     public Path debugPath = TATConstants.PLATFORM.debugOutputPath();
     public ClassOutputInfo.UsedMappingsOutput usedMappingsOutput;
     public WatheMappingsCache mappingsCache = WatheMappingsCache.create();
