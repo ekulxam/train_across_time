@@ -13,9 +13,9 @@ public class ClassOutputInfo {
     private int writerFlags = 0;
     private final Set<String> errors = new HashSet<>();
 
-    public ClassOutputInfo(String className, @Nullable UsedMappingsOutput usedMappingsOutput) {
+    public ClassOutputInfo(String className, UsedMappingsOutput usedMappingsOutput) {
         this.className = className;
-        this.usedMappingsOutput = usedMappingsOutput == null ? UsedMappingsOutput.NONE : usedMappingsOutput;
+        this.usedMappingsOutput = usedMappingsOutput;
     }
 
     public void markChanged() {

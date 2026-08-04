@@ -21,9 +21,8 @@ import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.util.log.Log;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.*;
+import org.objectweb.asm.tree.*;
 import survivalblock.train_across_time.agent.remap.*;
 
 import java.io.*;
@@ -33,8 +32,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.ProtectionDomain;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER;
 
@@ -43,19 +42,14 @@ import static survivalblock.train_across_time.TheTrainAcrossTimeConstants.LOGGER
  */
 @SuppressWarnings("unused")
 public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
+    public static final Path DEBUG_PATH = FabricLoader.getInstance().isDevelopmentEnvironment() ? FabricLoader.getInstance().getGameDir().toAbsolutePath().resolve(".wathe_port_debug") : null;;
+    public static final ClassOutputInfo.UsedMappingsOutput USED_MAPPINGS_OUTPUT;
+
     static {
         Log.info(LOGGER, "Committing sins");
 
-        nukeAW("wathe");
-        nukeAW("ratatouille");
-
-        AgentLoader.loadAgent();
-
-        Log.info(LOGGER, "Successfully loaded java agent " + AgentLoader.INSTRUMENTATION);
-
-        var debugPath = FabricLoader.getInstance().isDevelopmentEnvironment() ? FabricLoader.getInstance().getGameDir().toAbsolutePath().resolve(".wathe_port_debug") : null;
         var mappingsOutputFile = System.getProperty("train_across_time:mappings_output_file");
-        var usedMappingsOutput = mappingsOutputFile == null ? null : new ClassOutputInfo.UsedMappingsOutput() {
+        USED_MAPPINGS_OUTPUT = mappingsOutputFile == null ? ClassOutputInfo.UsedMappingsOutput.NONE : new ClassOutputInfo.UsedMappingsOutput() {
             public final WatheMappingsCache cache = WatheMappingsCache.create();
             public final Path outputFile = Paths.get(mappingsOutputFile);
 
@@ -83,44 +77,65 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
                 }
             }
         };
+        WatheMappingsCache.INSTANCE.reload();
+
+        nukeAW("wathe");
+        nukeAW("ratatouille");
+
+        AgentLoader.loadAgent();
+
+        Log.info(LOGGER, "Successfully loaded java agent " + AgentLoader.INSTRUMENTATION);
 
         AgentLoader.INSTRUMENTATION.addTransformer(new ClassFileTransformer() {
             @Override
             public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+                if (className.equals("org/spongepowered/asm/mixin/transformer/MixinInfo")) {
+                    var node = new ClassNode();
+                    new ClassReader(classfileBuffer).accept(node, 0);
+
+                    for (MethodNode method : node.methods) {
+                        if (method.name.equals("loadMixinClass")) {
+                            for (AbstractInsnNode insn : method.instructions) {
+                                if (insn.getOpcode() == Opcodes.ARETURN) {
+                                    var insns = new InsnList();
+                                    insns.add(new MethodInsnNode(
+                                            Opcodes.INVOKESTATIC,
+                                            Type.getInternalName(TheTrainAcrossTimeLanguageAdapter.class),
+                                            "transformMixin",
+                                            "(Lorg/objectweb/asm/tree/ClassNode;)Lorg/objectweb/asm/tree/ClassNode;"
+                                    ));
+                                    insns.add(new VarInsnNode(Opcodes.ASTORE, 2));
+                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                                    method.instructions.insertBefore(insn, insns);
+                                }
+                            }
+                        }
+                    }
+
+                    var writer = new ClassWriter(0);
+                    node.accept(writer);
+                    return writer.toByteArray();
+                }
+
                 if (!(className.startsWith("dev/doctor4t/wathe") || className.startsWith("dev/doctor4t/ratatouille"))) {
                     return null;
                 }
 
                 try {
-                    var node = new ClassNode();
-                    var info = new ClassOutputInfo(className, usedMappingsOutput);
-                    new ClassReader(classfileBuffer).accept(new MixinClassRemapper(new MixinClassRemapper(node, new WatheRemapper(Opcodes.ASM9, info)), WatheMappingsCache.INSTANCE.createRemapper(Opcodes.ASM9, info)), 0);
+                    var info = new ClassOutputInfo(className, USED_MAPPINGS_OUTPUT);
+                    var node = TheTrainAcrossTimeLanguageAdapter.transform(info, visitor -> new ClassReader(classfileBuffer).accept(visitor, 0));
 
-                    var patch = WatheClassPatches.PATCHES.get(className);
-
-                    if (patch != null) {
-                        info.markChanged();
-                        patch.accept(node, info);
-                    }
-
-                    byte[] bytes = null;
+                    byte[] bytes;
                     var writer = info.end();
 
-                    if (writer != null) {
+                    if (writer == null) {
+                        bytes = null;
+                    } else {
                         node.accept(writer);
                         bytes = writer.toByteArray();
                     }
 
-                    if (debugPath != null) {
-                        var path = debugPath.resolve(className + ".class");
-                        var folder = path.getParent().toFile();
-
-                        if (folder.mkdirs() || folder.exists()) {
-                            Files.write(path, bytes == null ? classfileBuffer : bytes);
-                        } else {
-                            throw new FileNotFoundException("File with path " + path + " could not be written to!");
-                        }
-                    }
+                    debugSaveClass(className, () -> bytes == null ? classfileBuffer : bytes);
 
                     return bytes;
                 } catch (Exception e) {
@@ -130,6 +145,61 @@ public class TheTrainAcrossTimeLanguageAdapter implements LanguageAdapter {
                 return null;
             }
         });
+    }
+
+    public static ClassNode transform(
+            ClassOutputInfo info,
+            Consumer<ClassVisitor> visitor
+    ) {
+        var node = new ClassNode();
+        visitor.accept(new MixinClassRemapper(new MixinClassRemapper(node, new WatheRemapper(Opcodes.ASM9, info)), WatheMappingsCache.INSTANCE.createRemapper(Opcodes.ASM9, info)));
+
+        var patch = WatheClassPatches.PATCHES.get(info.className);
+
+        if (patch != null) {
+            info.markChanged();
+            patch.accept(node, info);
+        }
+
+        return node;
+    }
+
+    public static void debugSaveClass(
+            String className,
+            Supplier<byte[]> bytes
+    ) throws IOException {
+        if (DEBUG_PATH != null) {
+            var path = DEBUG_PATH.resolve(className + ".class");
+            var folder = path.getParent().toFile();
+
+            if (folder.mkdirs() || folder.exists()) {
+                Files.write(path, bytes.get());
+            } else {
+                throw new FileNotFoundException("File with path " + path + " could not be written to!");
+            }
+        }
+    }
+
+    public static ClassNode transformMixin(ClassNode oldNode) {
+        try {
+            var info = new ClassOutputInfo(oldNode.name, USED_MAPPINGS_OUTPUT);
+            var node = TheTrainAcrossTimeLanguageAdapter.transform(info, oldNode::accept);
+
+            var writer = info.end();
+
+            if (writer != null) {
+                debugSaveClass(oldNode.name, () -> {
+                    node.accept(writer);
+                    return writer.toByteArray();
+                });
+            }
+
+            return node;
+        } catch (Exception e) {
+            Log.error(LOGGER, "Error while processing mixin " + oldNode.name, e);
+        }
+
+        return oldNode;
     }
 
     public static void nukeAW(String modId) {
