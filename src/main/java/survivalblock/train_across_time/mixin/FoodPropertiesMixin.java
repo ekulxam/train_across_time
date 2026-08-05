@@ -1,8 +1,10 @@
 package survivalblock.train_across_time.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
 import dev.doctor4t.wathe.index.WatheDataComponentTypes;
+import dev.doctor4t.wathe.item.CocktailItem;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -47,6 +49,10 @@ public class FoodPropertiesMixin {
                     PlayerPoisonComponent.KEY.get(player).setPoisonTicks(Mth.clamp(poisonTicks - level.getRandom().nextIntBetweenInclusive(100, 300), 0, PlayerPoisonComponent.clampTime.getB()), UUID.fromString(poisoner));
                 }
             }
+        }
+
+        if (!(stack.getItem() instanceof CocktailItem)) {
+            PlayerMoodComponent.KEY.get(player).eatFood();
         }
     }
 }
