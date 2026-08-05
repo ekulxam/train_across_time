@@ -31,6 +31,7 @@ import java.util.function.Predicate;
 public interface TATConstants {
     String MOD_ID = "train_across_time";
 
+    String MIXIN_PROCESSOR_CLASS = "org/spongepowered/asm/mixin/transformer/MixinProcessor";
     String CLASS_INFO_CLASS = "org/spongepowered/asm/mixin/transformer/ClassInfo";
     String MIXIN_INFO_CLASS = "org/spongepowered/asm/mixin/transformer/MixinInfo";
 
@@ -43,13 +44,26 @@ public interface TATConstants {
     Platform PLATFORM = ServiceLoader.load(Platform.class).findFirst().orElseThrow();
     List<Predicate<String>> TRANSFORM_PREDICATES = new ArrayList<>(List.of(
             cls -> cls.startsWith(WATHE_PACKAGE),
-            cls -> cls.startsWith(RATATOUILLE_PACKAGE),
+            cls -> cls.startsWith(RATATOUILLE_PACKAGE)
+    ));
+    List<Predicate<String>> MIXIN_TRANSFORM_PREDICATES = new ArrayList<>(List.of(
+            cls -> cls.equals(MIXIN_PROCESSOR_CLASS),
             cls -> cls.equals(CLASS_INFO_CLASS),
             cls -> cls.equals(MIXIN_INFO_CLASS)
     ));
 
     static boolean shouldTransformClass(String className) {
         for (Predicate<String> p : TRANSFORM_PREDICATES) {
+            if (p.test(className)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static boolean shouldTransformMixinClass(String className) {
+        for (Predicate<String> p : MIXIN_TRANSFORM_PREDICATES) {
             if (p.test(className)) {
                 return true;
             }

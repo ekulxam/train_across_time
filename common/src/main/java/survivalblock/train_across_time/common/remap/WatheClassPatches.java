@@ -17,10 +17,8 @@ package survivalblock.train_across_time.common.remap;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-import org.objectweb.asm.util.TraceClassVisitor;
 import survivalblock.train_across_time.common.TATConstants;
 
-import java.io.PrintWriter;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -844,52 +842,6 @@ public class WatheClassPatches {
                 "dev/doctor4t/wathe/mixin/client/self/BeveragePlateBlockEntityMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("tickWithoutFearOfCrashing"));
-        });
-        register(List.of(
-                TATConstants.CLASS_INFO_CLASS
-        ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("forName")) {
-                    var ordinal = 0;
-
-                    for (AbstractInsnNode insn : method.instructions) {
-                        if (insn instanceof MethodInsnNode m && m.name.equals("<init>") && ordinal++ == 1) {
-                            var insns = new InsnList();
-                            insns.add(new MethodInsnNode(
-                                    Opcodes.INVOKESTATIC,
-                                    "survivalblock/train_across_time/agent/TATLanguageAdapter",
-                                    "transformStatic",
-                                    "(Lorg/objectweb/asm/tree/ClassNode;)Lorg/objectweb/asm/tree/ClassNode;"
-                            ));
-                            insns.add(new VarInsnNode(Opcodes.ASTORE, 3));
-                            insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
-                            method.instructions.insertBefore(insn, insns);
-                        }
-                    }
-                }
-            }
-        });
-        register(List.of(
-                TATConstants.MIXIN_INFO_CLASS
-        ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("loadMixinClass")) {
-                    for (AbstractInsnNode insn : method.instructions) {
-                        if (insn.getOpcode() == Opcodes.ARETURN) {
-                            var insns = new InsnList();
-                            insns.add(new MethodInsnNode(
-                                    Opcodes.INVOKESTATIC,
-                                    "survivalblock/train_across_time/agent/TATLanguageAdapter",
-                                    "transformStatic",
-                                    "(Lorg/objectweb/asm/tree/ClassNode;)Lorg/objectweb/asm/tree/ClassNode;"
-                            ));
-                            insns.add(new VarInsnNode(Opcodes.ASTORE, 2));
-                            insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                            method.instructions.insertBefore(insn, insns);
-                        }
-                    }
-                }
-            }
         });
         /*
         register(List.of(

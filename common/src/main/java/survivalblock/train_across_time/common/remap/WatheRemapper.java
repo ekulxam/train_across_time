@@ -42,6 +42,7 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/world/entity/projectile/ThrowableItemProjectile" -> "net/minecraft/world/entity/projectile/throwableitemprojectile/ThrowableItemProjectile";
 
             case "org/ladysnake/cca/api/v3/world/WorldComponentInitializer" -> "org/ladysnake/cca/api/v3/level/LevelComponentInitializer";
+            case "org/ladysnake/cca/api/v3/world/WorldComponentFactoryRegistry" -> "org/ladysnake/cca/api/v3/level/LevelComponentFactoryRegistry";
 
             case "net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents" -> "net/fabricmc/fabric/api/creativetab/v1/CreativeModeTabEvents";
             case "net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents$ModifyEntries" -> "net/fabricmc/fabric/api/creativetab/v1/CreativeModeTabEvents$ModifyOutput";
