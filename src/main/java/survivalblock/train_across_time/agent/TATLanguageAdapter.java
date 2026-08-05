@@ -29,9 +29,13 @@ import survivalblock.train_across_time.common.remap.*;
 import java.io.*;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * @author Typho
@@ -42,6 +46,19 @@ public class TATLanguageAdapter implements LanguageAdapter {
 
     static {
         TATConstants.PLATFORM.info("Committing sins");
+
+        if (TRANSFORMER.debugPath != null) {
+            try {
+                try (var directoryStream = Files.walk(TRANSFORMER.debugPath)) {
+                    //noinspection ResultOfMethodCallIgnored
+                    directoryStream.sorted(Comparator.reverseOrder())
+                            .map(Path::toFile)
+                            .forEach(File::delete);
+                }
+            } catch (IOException e) {
+                TATConstants.PLATFORM.error("Unable to fully delete debug directory!", e);
+            }
+        }
 
         nukeAW(TATConstants.WATHE);
         nukeAW(TATConstants.RATATOUILLE);

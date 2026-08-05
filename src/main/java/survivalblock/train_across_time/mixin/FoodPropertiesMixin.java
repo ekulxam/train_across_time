@@ -41,12 +41,13 @@ public class FoodPropertiesMixin {
             String poisoner = stack.get(WatheDataComponentTypes.POISONER);
 
             if (poisoner != null) {
-                int poisonTicks = PlayerPoisonComponent.KEY.get(player).poisonTicks;
+                PlayerPoisonComponent component = PlayerPoisonComponent.KEY.get(player);
+                int poisonTicks = component.poisonTicks;
 
                 if (poisonTicks == -1) {
-                    PlayerPoisonComponent.KEY.get(player).setPoisonTicks(level.getRandom().nextIntBetweenInclusive(PlayerPoisonComponent.clampTime.getA(), PlayerPoisonComponent.clampTime.getB()), UUID.fromString(poisoner));
+                    component.setPoisonTicks(level.getRandom().nextIntBetweenInclusive(PlayerPoisonComponent.clampTime.getA(), PlayerPoisonComponent.clampTime.getB()), UUID.fromString(poisoner));
                 } else {
-                    PlayerPoisonComponent.KEY.get(player).setPoisonTicks(Mth.clamp(poisonTicks - level.getRandom().nextIntBetweenInclusive(100, 300), 0, PlayerPoisonComponent.clampTime.getB()), UUID.fromString(poisoner));
+                    component.setPoisonTicks(Mth.clamp(poisonTicks - level.getRandom().nextIntBetweenInclusive(100, 300), 0, PlayerPoisonComponent.clampTime.getB()), UUID.fromString(poisoner));
                 }
             }
         }
