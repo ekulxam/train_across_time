@@ -5,7 +5,7 @@ import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.commons.Remapper;
-import survivalblock.train_across_time.common.TATConstants;
+import survivalblock.train_across_time.common.TATConstants;import survivalblock.train_across_time.common.WatheTransformer;import survivalblock.train_across_time.common.util.ClassOutputInfo;
 
 import java.io.*;
 import java.nio.file.Files;

@@ -1,4 +1,4 @@
-package survivalblock.train_across_time.common.remap;
+package survivalblock.train_across_time.common.util;
 
 public class EndClassVisitException extends RuntimeException {
     public EndClassVisitException() {

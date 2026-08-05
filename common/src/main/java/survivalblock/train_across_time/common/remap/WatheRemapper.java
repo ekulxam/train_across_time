@@ -16,6 +16,7 @@
 package survivalblock.train_across_time.common.remap;
 
 import org.objectweb.asm.commons.Remapper;
+import survivalblock.train_across_time.common.util.ClassOutputInfo;
 
 /**
  * @author Typho
@@ -35,6 +36,7 @@ public class WatheRemapper extends Remapper {
 
         internalName = switch (internalName) {
             case "net/minecraft/resources/ResourceLocation" -> "net/minecraft/resources/Identifier";
+            case "net/minecraft/world/InteractionResultHolder", "net/minecraft/world/ItemInteractionResult" -> "net/minecraft/world/InteractionResult";
             case "net/minecraft/world/level/block/state/properties/DirectionProperty" -> "net/minecraft/world/level/block/state/properties/EnumProperty";
             case "net/minecraft/Util" -> "net/minecraft/util/Util";
             case "net/minecraft/world/level/block/entity/BlockEntityType$Builder" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder";
@@ -55,9 +57,7 @@ public class WatheRemapper extends Remapper {
             case "net/fabricmc/fabric/api/client/particle/v1/FabricSpriteProvider" -> "net/fabricmc/fabric/api/client/particle/v1/FabricSpriteSet";
             case "net/fabricmc/fabric/api/client/rendering/v1/EntityModelLayerRegistry" -> "net/fabricmc/fabric/api/client/rendering/v1/ModelLayerRegistry";
             case "net/fabricmc/fabric/api/client/rendering/v1/EntityModelLayerRegistry$TexturedModelDataProvider" -> "net/fabricmc/fabric/api/client/rendering/v1/ModelLayerRegistry$TexturedLayerDefinitionProvider";
-            case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents" -> "net/fabricmc/fabric/api/client/rendering/v1/LevelRenderEvents";
-
-            case "net/minecraft/world/ItemInteractionResult" -> "net/minecraft/world/InteractionResult";
+            case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents" -> "net/fabricmc/fabric/api/client/rendering/v1/level/LevelRenderEvents";
 
             default -> internalName;
         };
@@ -188,5 +188,10 @@ public class WatheRemapper extends Remapper {
         }
 
         return name;
+    }
+
+    @Override
+    public String mapSignature(String signature, boolean typeSignature) {
+        return super.mapSignature(signature == null ? null : signature.replace("Lnet/minecraft/world/InteractionResultHolder<Lnet/minecraft/world/item/ItemStack;>;", "Lnet/minecraft/world/InteractionResult;"), typeSignature);
     }
 }

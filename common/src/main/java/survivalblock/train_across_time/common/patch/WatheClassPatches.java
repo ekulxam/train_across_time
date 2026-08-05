@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package survivalblock.train_across_time.common.remap;
+package survivalblock.train_across_time.common.patch;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-import survivalblock.train_across_time.common.TATConstants;
+import survivalblock.train_across_time.common.TATConstants;import survivalblock.train_across_time.common.util.ClassOutputInfo;import survivalblock.train_across_time.common.util.ptr.InsnPointer;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -101,20 +101,59 @@ public class WatheClassPatches {
         });
     }
 
-    public static void applyToMethod(ClassNode node, String name, Consumer<MethodNode> action) {
+    public static boolean spliceMethod(
+            ClassNode node,
+            String name,
+            InsnPointer<?, ?> from,
+            InsnPointer<?, ?> to,
+            Consumer<InsnList> replacement
+    ) {
+        return applyToMethod(node, name, method -> {
+            var fromNode = from.findOrThrow(method.instructions);
+            var toNode = to.findOrThrow(method.instructions);
+
+            var insns = new InsnList();
+            replacement.accept(insns);
+
+            method.instructions.insertBefore(fromNode, insns);
+
+            if (fromNode == toNode) {
+                method.instructions.remove(fromNode);
+            } else {
+                while (fromNode.getNext() != toNode) {
+                    method.instructions.remove(fromNode.getNext());
+                }
+
+                method.instructions.remove(fromNode);
+                method.instructions.remove(toNode);
+            }
+        });
+    }
+
+    public static boolean applyToMethod(ClassNode node, String name, Consumer<MethodNode> action) {
+        var found = false;
+
         for (MethodNode methodNode : node.methods) {
             if (methodNode.name.equals(name)) {
                 action.accept(methodNode);
+                found = true;
             }
         }
+
+        return found;
     }
 
-    public static void applyToField(ClassNode node, String name, Consumer<FieldNode> action) {
+    public static boolean applyToField(ClassNode node, String name, Consumer<FieldNode> action) {
+        var found = false;
+
         for (FieldNode fieldNode : node.fields) {
             if (fieldNode.name.equals(name)) {
                 action.accept(fieldNode);
+                found = true;
             }
         }
+
+        return found;
     }
 
     public static void applyBlockIds(MethodNode method, Map<Integer, String> fallbacks) {
@@ -196,27 +235,26 @@ public class WatheClassPatches {
             boolean nuke
     ) {
         String descriptor = "L" + replacementClass + ";";
-        for (MethodNode method : node.methods) {
-            if (method.name.equals(methodName)) {
-                method.desc = method.desc.replace("Lnet/minecraft/nbt/CompoundTag;", descriptor);
 
-                if (nuke) {
-                    method.instructions.clear();
-                    method.instructions.add(new InsnNode(Opcodes.RETURN));
-                    method.localVariables.removeIf(localVariableNode -> !localVariableNode.name.equals("this")  && !localVariableNode.name.equals("nbt"));
-                } else {
-                    for (var insn : method.instructions) {
-                        if (insn instanceof MethodInsnNode methodInsnNode) {
-                            methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", replacementClass);
-                            methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", descriptor);
-                        }
-                    }
-                    for (var local : method.localVariables) {
-                        local.desc = local.desc.replace("Lnet/minecraft/nbt/CompoundTag;", descriptor);
+        applyToMethod(node, methodName, method -> {
+            method.desc = method.desc.replace("Lnet/minecraft/nbt/CompoundTag;", descriptor);
+
+            if (nuke) {
+                method.instructions.clear();
+                method.instructions.add(new InsnNode(Opcodes.RETURN));
+                method.localVariables.removeIf(localVariableNode -> !localVariableNode.name.equals("this") && !localVariableNode.name.equals("nbt"));
+            } else {
+                for (var insn : method.instructions) {
+                    if (insn instanceof MethodInsnNode methodInsnNode) {
+                        methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/nbt/CompoundTag", replacementClass);
+                        methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/nbt/CompoundTag;", descriptor);
                     }
                 }
+                for (var local : method.localVariables) {
+                    local.desc = local.desc.replace("Lnet/minecraft/nbt/CompoundTag;", descriptor);
+                }
             }
-        }
+        });
     }
 
     public static void changeInjectionMethod(
@@ -225,25 +263,23 @@ public class WatheClassPatches {
             String injectionDesc,
             String... newMethod
     ) {
-        for (MethodNode method : node.methods) {
-            if (method.name.equals(methodName)) {
-                for (AnnotationNode anno : method.visibleAnnotations) {
-                    if (anno.desc.equals(injectionDesc)) {
-                        var iterator = anno.values.listIterator();
+        applyToMethod(node, methodName, method -> {
+            for (AnnotationNode anno : method.visibleAnnotations) {
+                if (anno.desc.equals(injectionDesc)) {
+                    var iterator = anno.values.listIterator();
 
-                        while (iterator.hasNext()) {
-                            var name = (String) iterator.next();
-                            var value = iterator.next();
+                    while (iterator.hasNext()) {
+                        var name = (String) iterator.next();
+                        var value = iterator.next();
 
-                            if (name.equals("method")) {
-                                iterator.set(new ArrayList<>(Arrays.asList(newMethod)));
-                                break;
-                            }
+                        if (name.equals("method")) {
+                            iterator.set(new ArrayList<>(Arrays.asList(newMethod)));
+                            break;
                         }
                     }
                 }
             }
-        }
+        });
     }
 
     public static void changeInjectionAt(
@@ -252,27 +288,25 @@ public class WatheClassPatches {
             String injectionDesc,
             Object... newAt
     ) {
-        for (MethodNode method : node.methods) {
-            if (method.name.equals(methodName)) {
-                for (AnnotationNode anno : method.visibleAnnotations) {
-                    if (anno.desc.equals(injectionDesc)) {
-                        var iterator = anno.values.listIterator();
+        applyToMethod(node, methodName, method -> {
+            for (AnnotationNode anno : method.visibleAnnotations) {
+                if (anno.desc.equals(injectionDesc)) {
+                    var iterator = anno.values.listIterator();
 
-                        while (iterator.hasNext()) {
-                            var name = (String) iterator.next();
-                            var value = iterator.next();
+                    while (iterator.hasNext()) {
+                        var name = (String) iterator.next();
+                        var value = iterator.next();
 
-                            if (name.equals("at")) {
-                                var newAnno = new AnnotationNode(Opcodes.ASM9, AT);
-                                newAnno.values = new ArrayList<>(Arrays.asList(newAt));
-                                iterator.set(newAnno);
-                                break;
-                            }
+                        if (name.equals("at")) {
+                            var newAnno = new AnnotationNode(Opcodes.ASM9, AT);
+                            newAnno.values = new ArrayList<>(Arrays.asList(newAt));
+                            iterator.set(newAnno);
+                            break;
                         }
                     }
                 }
             }
-        }
+        });
     }
 
     static {
@@ -298,149 +332,82 @@ public class WatheClassPatches {
         register(List.of(
                 "dev/doctor4t/wathe/index/WatheItems"
         ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("<clinit>")) {
-                    method.instructions.remove(
-                            Arrays.stream(method.instructions.toArray())
-                                    .filter(insn -> insn instanceof MethodInsnNode m && m.name.equals("createAttributes"))
-                                    .findFirst()
-                                    .orElseThrow()
-                    );
-                }
-            }
+            applyToMethod(node, "<clinit>", method -> {
+                method.instructions.remove(
+                        Arrays.stream(method.instructions.toArray())
+                                .filter(insn -> insn instanceof MethodInsnNode m && m.name.equals("createAttributes"))
+                                .findFirst()
+                                .orElseThrow()
+                );
+            });
         });
 
         register(List.of(
                 "dev/doctor4t/ratatouille/util/registrar/BlockRegistrar"
         ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("createWithItem")) {
-                    switch (method.desc) {
-                        case "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;)Lnet/minecraft/world/level/block/Block;",
-                             "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" -> {
-                            boolean hasVarargs = method.desc.equals("(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;");
-                            InsnList insns = new InsnList();
-
-                            insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
-                            insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
-
-                            insns.add(new TypeInsnNode(Opcodes.NEW, "net/minecraft/world/item/Item$Properties"));
-                            insns.add(new InsnNode(Opcodes.DUP));
-                            insns.add(new MethodInsnNode(
-                                    Opcodes.INVOKESPECIAL,
-                                    "net/minecraft/world/item/Item$Properties",
-                                    "<init>",
-                                    "()V",
-                                    false
-                            ));
-
-                            if (hasVarargs) {
-                                insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
-                            }
-
-                            insns.add(new MethodInsnNode(
-                                    Opcodes.INVOKEVIRTUAL,
-                                    "dev/doctor4t/ratatouille/util/registrar/BlockRegistrar",
-                                    "createWithItem",
-                                    hasVarargs ? "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" : "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;)Lnet/minecraft/world/level/block/Block;",
-                                    false
-                            ));
-
-                            insns.add(new InsnNode(Opcodes.ARETURN));
-
-                            method.instructions = insns;
-                            method.tryCatchBlocks.clear();
-                            method.localVariables.clear();
-                            method.maxLocals = hasVarargs ? 4 : 3;
-                        }
-                        case "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;)Lnet/minecraft/world/level/block/Block;",
-                             "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" -> {
-                            InsnList insns = new InsnList();
-
-                            insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
-
-                            insns.add(new FieldInsnNode(
-                                    Opcodes.GETSTATIC,
-                                    "net/minecraft/core/registries/Registries",
-                                    "ITEM",
-                                    "Lnet/minecraft/resources/ResourceKey;"
-                            ));
-
-                            insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            insns.add(new FieldInsnNode(
-                                    Opcodes.GETFIELD,
-                                    "dev/doctor4t/ratatouille/util/registrar/Registrar",
-                                    "namespace",
-                                    "Ljava/lang/String;"
-                            ));
-
-                            insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
-
-                            insns.add(new MethodInsnNode(
-                                    Opcodes.INVOKESTATIC,
-                                    "net/minecraft/resources/Identifier",
-                                    "fromNamespaceAndPath",
-                                    "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;",
-                                    false
-                            ));
-
-                            insns.add(new MethodInsnNode(
-                                    Opcodes.INVOKESTATIC,
-                                    "net/minecraft/resources/ResourceKey",
-                                    "create",
-                                    "(Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;",
-                                    false
-                            ));
-
-                            insns.add(new MethodInsnNode(
-                                    Opcodes.INVOKEVIRTUAL,
-                                    "net/minecraft/world/item/Item$Properties",
-                                    "setId",
-                                    "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/item/Item$Properties;",
-                                    false
-                            ));
-
-                            insns.add(new InsnNode(Opcodes.POP));
-
-                            method.instructions.insert(insns);
-                        }
-                    }
-                }
-            }
-        });
-        register(List.of(
-                "dev/doctor4t/ratatouille/util/registrar/EntityTypeRegistrar"
-        ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("create")) {
-                    List<MethodInsnNode> buildCalls = new ArrayList<>();
-                    for (AbstractInsnNode insn : method.instructions) {
-                        if (insn instanceof MethodInsnNode methodInsnNode && methodInsnNode.owner.equals("net/minecraft/world/entity/EntityType$Builder") && methodInsnNode.name.equals("build")) {
-                            methodInsnNode.desc = "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/entity/EntityType;";
-                            buildCalls.add(methodInsnNode);
-                        }
-                    }
-
-                    for (MethodInsnNode build : buildCalls) {
+            applyToMethod(node, "createWithItem", method -> {
+                switch (method.desc) {
+                    case "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;)Lnet/minecraft/world/level/block/Block;",
+                         "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" -> {
+                        boolean hasVarargs = method.desc.equals("(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;");
                         InsnList insns = new InsnList();
+
+                        insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                        insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
+                        insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+
+                        insns.add(new TypeInsnNode(Opcodes.NEW, "net/minecraft/world/item/Item$Properties"));
+                        insns.add(new InsnNode(Opcodes.DUP));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKESPECIAL,
+                                "net/minecraft/world/item/Item$Properties",
+                                "<init>",
+                                "()V",
+                                false
+                        ));
+
+                        if (hasVarargs) {
+                            insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
+                        }
+
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKEVIRTUAL,
+                                "dev/doctor4t/ratatouille/util/registrar/BlockRegistrar",
+                                "createWithItem",
+                                hasVarargs ? "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" : "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;)Lnet/minecraft/world/level/block/Block;",
+                                false
+                        ));
+
+                        insns.add(new InsnNode(Opcodes.ARETURN));
+
+                        method.instructions = insns;
+                        method.tryCatchBlocks.clear();
+                        method.localVariables.clear();
+                        method.maxLocals = hasVarargs ? 4 : 3;
+                    }
+                    case "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;)Lnet/minecraft/world/level/block/Block;",
+                         "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/item/Item$Properties;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" -> {
+                        InsnList insns = new InsnList();
+
+                        insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
 
                         insns.add(new FieldInsnNode(
                                 Opcodes.GETSTATIC,
                                 "net/minecraft/core/registries/Registries",
-                                "ENTITY_TYPE",
+                                "ITEM",
                                 "Lnet/minecraft/resources/ResourceKey;"
                         ));
 
                         insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-
                         insns.add(new FieldInsnNode(
                                 Opcodes.GETFIELD,
                                 "dev/doctor4t/ratatouille/util/registrar/Registrar",
                                 "namespace",
                                 "Ljava/lang/String;"
                         ));
+
                         insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
+
                         insns.add(new MethodInsnNode(
                                 Opcodes.INVOKESTATIC,
                                 "net/minecraft/resources/Identifier",
@@ -448,6 +415,7 @@ public class WatheClassPatches {
                                 "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;",
                                 false
                         ));
+
                         insns.add(new MethodInsnNode(
                                 Opcodes.INVOKESTATIC,
                                 "net/minecraft/resources/ResourceKey",
@@ -456,98 +424,152 @@ public class WatheClassPatches {
                                 false
                         ));
 
-                        method.instructions.insertBefore(build, insns);
-                        info.computeMaxStackSizes();
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKEVIRTUAL,
+                                "net/minecraft/world/item/Item$Properties",
+                                "setId",
+                                "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/item/Item$Properties;",
+                                false
+                        ));
+
+                        insns.add(new InsnNode(Opcodes.POP));
+
+                        method.instructions.insert(insns);
                     }
                 }
-            }
+            });
+        });
+        register(List.of(
+                "dev/doctor4t/ratatouille/util/registrar/EntityTypeRegistrar"
+        ), (node, info) -> {
+            applyToMethod(node, "create", method -> {
+                List<MethodInsnNode> buildCalls = new ArrayList<>();
+                for (AbstractInsnNode insn : method.instructions) {
+                    if (insn instanceof MethodInsnNode methodInsnNode && methodInsnNode.owner.equals("net/minecraft/world/entity/EntityType$Builder") && methodInsnNode.name.equals("build")) {
+                        methodInsnNode.desc = "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/entity/EntityType;";
+                        buildCalls.add(methodInsnNode);
+                    }
+                }
+
+                for (MethodInsnNode build : buildCalls) {
+                    InsnList insns = new InsnList();
+
+                    insns.add(new FieldInsnNode(
+                            Opcodes.GETSTATIC,
+                            "net/minecraft/core/registries/Registries",
+                            "ENTITY_TYPE",
+                            "Lnet/minecraft/resources/ResourceKey;"
+                    ));
+
+                    insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+
+                    insns.add(new FieldInsnNode(
+                            Opcodes.GETFIELD,
+                            "dev/doctor4t/ratatouille/util/registrar/Registrar",
+                            "namespace",
+                            "Ljava/lang/String;"
+                    ));
+                    insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
+                    insns.add(new MethodInsnNode(
+                            Opcodes.INVOKESTATIC,
+                            "net/minecraft/resources/Identifier",
+                            "fromNamespaceAndPath",
+                            "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;",
+                            false
+                    ));
+                    insns.add(new MethodInsnNode(
+                            Opcodes.INVOKESTATIC,
+                            "net/minecraft/resources/ResourceKey",
+                            "create",
+                            "(Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;",
+                            false
+                    ));
+
+                    method.instructions.insertBefore(build, insns);
+                    info.computeMaxStackSizes();
+                }
+            });
         });
 
         register(List.of(
                 "dev/doctor4t/ratatouille/index/RatatouilleItems"
         ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("<clinit>")) {
-                    TATConstants.PLATFORM.info("Injecting item ids into RatatouilleItems");
-                    applyItemIds(method, Map.of());
-                    info.computeMaxStackSizes();
-                }
-            }
+            applyToMethod(node, "<clinit>", method -> {
+                TATConstants.PLATFORM.info("Injecting item ids into RatatouilleItems");
+                applyItemIds(method, Map.of());
+                info.computeMaxStackSizes();
+            });
         });
         register(List.of(
                 "dev/doctor4t/ratatouille/index/RatatouilleBlocks"
         ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("<clinit>")) {
-                    TATConstants.PLATFORM.info("Injecting block ids into RatatouilleBlocks");
-                    applyBlockIds(method, Map.of());
-                    info.computeMaxStackSizes();
-                }
-            }
+            applyToMethod(node, "<clinit>", method -> {
+                TATConstants.PLATFORM.info("Injecting block ids into RatatouilleBlocks");
+                applyBlockIds(method, Map.of());
+                info.computeMaxStackSizes();
+            });
         });
         register(List.of(
                 "dev/doctor4t/wathe/index/WatheItems"
         ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("<clinit>")) {
-                    TATConstants.PLATFORM.info("Injecting item ids into WatheItems");
-                    applyItemIds(method, Map.of(
-                            2, "knife"
-                    ));
-                    info.computeMaxStackSizes();
-                }
-            }
+            applyToMethod(node, "<clinit>", method -> {
+                TATConstants.PLATFORM.info("Injecting item ids into WatheItems");
+                applyItemIds(method, Map.of(
+                        2, "knife"
+                ));
+                info.computeMaxStackSizes();
+            });
         });
         register(List.of(
                 "dev/doctor4t/wathe/index/WatheBlocks"
         ), (node, info) -> {
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("<clinit>")) {
-                    TATConstants.PLATFORM.info("Injecting block ids into WatheBlocks");
-                    applyBlockIds(method, Map.of());
-                    info.computeMaxStackSizes();
-                } else if (method.name.equals("createBranch")) {
-                    method.instructions.forEach(n -> {
-                        if (n instanceof MethodInsnNode insn) {
-                            if (insn.name.equals("of") || insn.name.equals("ofFullCopy") || insn.name.equals("ofLegacyCopy")) {
-                                switch (insn.owner) {
-                                    case "net/minecraft/world/level/block/state/BlockBehaviour$Properties" -> {
-                                        InsnList insns = new InsnList();
-                                        insns.add(new FieldInsnNode(
-                                                Opcodes.GETSTATIC,
-                                                "net/minecraft/core/registries/Registries",
-                                                "BLOCK",
-                                                "Lnet/minecraft/resources/ResourceKey;"
-                                        ));
-                                        insns.add(new LdcInsnNode(TATConstants.WATHE));
-                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                        insns.add(new MethodInsnNode(
-                                                Opcodes.INVOKESTATIC,
-                                                "net/minecraft/resources/Identifier",
-                                                "fromNamespaceAndPath",
-                                                "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;"
-                                        ));
-                                        insns.add(new MethodInsnNode(
-                                                Opcodes.INVOKESTATIC,
-                                                "net/minecraft/resources/ResourceKey",
-                                                "create",
-                                                "(Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;"
-                                        ));
-                                        insns.add(new MethodInsnNode(
-                                                Opcodes.INVOKEVIRTUAL,
-                                                "net/minecraft/world/level/block/state/BlockBehaviour$Properties",
-                                                "setId",
-                                                "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;"
-                                        ));
-                                        method.instructions.insert(n, insns);
-                                    }
+            applyToMethod(node, "<clinit>", method -> {
+                TATConstants.PLATFORM.info("Injecting block ids into WatheBlocks");
+                applyBlockIds(method, Map.of());
+                info.computeMaxStackSizes();
+            });
+
+            applyToMethod(node, "createBranch", method -> {
+                method.instructions.forEach(n -> {
+                    if (n instanceof MethodInsnNode insn) {
+                        if (insn.name.equals("of") || insn.name.equals("ofFullCopy") || insn.name.equals("ofLegacyCopy")) {
+                            switch (insn.owner) {
+                                case "net/minecraft/world/level/block/state/BlockBehaviour$Properties" -> {
+                                    InsnList insns = new InsnList();
+                                    insns.add(new FieldInsnNode(
+                                            Opcodes.GETSTATIC,
+                                            "net/minecraft/core/registries/Registries",
+                                            "BLOCK",
+                                            "Lnet/minecraft/resources/ResourceKey;"
+                                    ));
+                                    insns.add(new LdcInsnNode(TATConstants.WATHE));
+                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                    insns.add(new MethodInsnNode(
+                                            Opcodes.INVOKESTATIC,
+                                            "net/minecraft/resources/Identifier",
+                                            "fromNamespaceAndPath",
+                                            "(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/Identifier;"
+                                    ));
+                                    insns.add(new MethodInsnNode(
+                                            Opcodes.INVOKESTATIC,
+                                            "net/minecraft/resources/ResourceKey",
+                                            "create",
+                                            "(Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/resources/ResourceKey;"
+                                    ));
+                                    insns.add(new MethodInsnNode(
+                                            Opcodes.INVOKEVIRTUAL,
+                                            "net/minecraft/world/level/block/state/BlockBehaviour$Properties",
+                                            "setId",
+                                            "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;"
+                                    ));
+                                    method.instructions.insert(n, insns);
                                 }
                             }
                         }
-                    });
-                    info.computeMaxStackSizes();
-                }
-            }
+                    }
+                });
+                info.computeMaxStackSizes();
+            });
         });
         register(List.of(
                 "dev/doctor4t/wathe/util/ShopEntry",
@@ -557,6 +579,7 @@ public class WatheClassPatches {
             applyToField(node, "stack", field -> {
                 field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
             });
+
             for (MethodNode method : node.methods) {
                 if ((method.access & Opcodes.ACC_STATIC) == 0) {
                     method.desc = method.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
@@ -640,32 +663,6 @@ public class WatheClassPatches {
             }
         });
         register(List.of(
-                "dev/doctor4t/wathe/item/BatItem",
-                "dev/doctor4t/wathe/item/CocktailItem",
-                "dev/doctor4t/wathe/item/DerringerItem",
-                "dev/doctor4t/wathe/item/GrenadeItem",
-                "dev/doctor4t/wathe/item/KnifeItem",
-                "dev/doctor4t/wathe/item/NoteItem",
-                "dev/doctor4t/wathe/item/RevolverItem",
-                "dev/doctor4t/wathe/mixin/client/self/NoteItemMixin"
-        ), (node, info) -> {
-            for (MethodNode methodNode : node.methods) {
-                // WHY IS KNIFEITEM STILL NOT WORKING
-                methodNode.desc = methodNode.desc.replace("Lnet/minecraft/world/InteractionResultHolder<Lnet/minecraft/world/item/ItemStack;>", "Lnet/minecraft/world/InteractionResult;");
-                methodNode.desc = methodNode.desc.replace("Lnet/minecraft/world/InteractionResultHolder;", "Lnet/minecraft/world/InteractionResult;");
-                if (methodNode.signature != null) {
-                    methodNode.signature = methodNode.signature.replace("Lnet/minecraft/world/InteractionResultHolder<Lnet/minecraft/world/item/ItemStack;>", "Lnet/minecraft/world/InteractionResult;");
-                    methodNode.signature = methodNode.signature.replace("Lnet/minecraft/world/InteractionResultHolder;", "Lnet/minecraft/world/InteractionResult;");
-                }
-                for (var insn : methodNode.instructions) {
-                    if (insn instanceof MethodInsnNode methodInsnNode) {
-                        methodInsnNode.owner = methodInsnNode.owner.replace("net/minecraft/world/InteractionResultHolder", "net/minecraft/world/InteractionResult");
-                        methodInsnNode.desc = methodInsnNode.desc.replace("Lnet/minecraft/world/InteractionResultHolder;", "Lnet/minecraft/world/InteractionResult;");
-                    }
-                }
-            }
-        });
-        register(List.of(
                 "dev/doctor4t/wathe/block/BarrierPanelBlock"
         ), (node, info) -> {
             for (FieldNode field : node.fields) {
@@ -678,38 +675,38 @@ public class WatheClassPatches {
                 }
             }
 
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("<init>")) {
-                    for (AbstractInsnNode insn : method.instructions) {
-                        if (insn instanceof MethodInsnNode m) {
-                            if (m.name.equals("getShapeForEachState")) {
-                                m.desc = m.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
-                            }
-                        } else if (insn instanceof FieldInsnNode field) {
-                            if (field.name.equals("SHAPES")) {
-                                field.desc = field.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
-                            }
+            applyToMethod(node, "<init>", method -> {
+                for (AbstractInsnNode insn : method.instructions) {
+                    if (insn instanceof MethodInsnNode m) {
+                        if (m.name.equals("getShapeForEachState")) {
+                            m.desc = m.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
                         }
-                    }
-                } else if (method.name.equals("getShape")) {
-                    for (AbstractInsnNode insn : method.instructions) {
-                        if (insn instanceof MethodInsnNode m) {
-                            if (m.name.equals("get")) {
-                                method.instructions.set(m, new MethodInsnNode(
-                                        Opcodes.INVOKEINTERFACE,
-                                        "java/util/function/Function",
-                                        "apply",
-                                        "(Ljava/lang/Object;)Ljava/lang/Object;"
-                                ));
-                            }
-                        } else if (insn instanceof FieldInsnNode field) {
-                            if (field.name.equals("SHAPES")) {
-                                field.desc = field.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
-                            }
+                    } else if (insn instanceof FieldInsnNode field) {
+                        if (field.name.equals("SHAPES")) {
+                            field.desc = field.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
                         }
                     }
                 }
-            }
+            });
+
+            applyToMethod(node, "getShape", method -> {
+                for (AbstractInsnNode insn : method.instructions) {
+                    if (insn instanceof MethodInsnNode m) {
+                        if (m.name.equals("get")) {
+                            method.instructions.set(m, new MethodInsnNode(
+                                    Opcodes.INVOKEINTERFACE,
+                                    "java/util/function/Function",
+                                    "apply",
+                                    "(Ljava/lang/Object;)Ljava/lang/Object;"
+                            ));
+                        }
+                    } else if (insn instanceof FieldInsnNode field) {
+                        if (field.name.equals("SHAPES")) {
+                            field.desc = field.desc.replace("com/google/common/collect/ImmutableMap", "java/util/function/Function");
+                        }
+                    }
+                }
+            });
         });
         register(List.of(
                 "dev/doctor4t/wathe/client/render/entity/FirecrackerEntityRenderer"
@@ -783,15 +780,13 @@ public class WatheClassPatches {
                     "target", "Lnet/minecraft/server/level/ServerPlayer;sendOverlayMessage(Lnet/minecraft/network/chat/Component;)V"
             );
 
-            for (MethodNode method : node.methods) {
-                if (method.name.equals("wathe$disableSleepMessage")) {
-                    method.desc = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V";
-                    method.signature = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation<Ljava/lang/Void;>;)V";
-                    method.parameters.remove(2);
-                    method.localVariables.remove(3);
-                    method.maxLocals--;
-                }
-            }
+            applyToMethod(node, "wathe$disableSleepMessage", method -> {
+                method.desc = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation;)V";
+                method.signature = "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;Lcom/llamalad7/mixinextras/injector/wrapoperation/Operation<Ljava/lang/Void;>;)V";
+                method.parameters.remove(2);
+                method.localVariables.remove(3);
+                method.maxLocals--;
+            });
 
             node.methods.removeIf(method -> method.name.equals("wathe$disableSetSpawnpoint"));
 
@@ -847,6 +842,23 @@ public class WatheClassPatches {
                 "dev/doctor4t/wathe/mixin/client/restrictions/EntityRendererMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("renderLabelIfPresent"));
+        });
+        register(List.of(
+                "dev/doctor4t/ratatouille/client/RatatouilleClient"
+        ), (node, info) -> {
+            spliceMethod(
+                    node,
+                    "onInitializeClient",
+                    InsnPointer.fieldGetStatic()
+                            .owner("net/fabricmc/fabric/api/blockrenderlayer/v1/BlockRenderLayerMap")
+                            .name("INSTANCE"),
+                    InsnPointer.methodCallInterface()
+                            .owner("net/fabricmc/fabric/api/blockrenderlayer/v1/BlockRenderLayerMap")
+                            .name("putBlocks"),
+                    insns -> {
+                        // TODO I'm pretty sure we need to put code here to register the block render layer, but I can't find what to call? It might be auto detected in modern, not sure. - Typho
+                    }
+            );
         });
         /*
         register(List.of(

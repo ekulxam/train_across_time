@@ -22,8 +22,8 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
-import org.objectweb.asm.util.TraceClassVisitor;
 import survivalblock.train_across_time.common.TATConstants;
+import survivalblock.train_across_time.common.WatheTransformer;
 import survivalblock.train_across_time.common.remap.*;
 
 import java.io.*;
@@ -31,7 +31,6 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;

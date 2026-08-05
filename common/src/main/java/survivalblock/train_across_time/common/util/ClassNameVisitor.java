@@ -1,4 +1,4 @@
-package survivalblock.train_across_time.common.remap;
+package survivalblock.train_across_time.common.util;
 
 import org.objectweb.asm.ClassVisitor;
 

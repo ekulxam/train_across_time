@@ -8,7 +8,7 @@ import org.gradle.api.tasks.Classpath;
 import org.jspecify.annotations.NonNull;
 import org.objectweb.asm.ClassReader;
 import survivalblock.train_across_time.common.TATConstants;
-import survivalblock.train_across_time.common.remap.*;
+import survivalblock.train_across_time.common.WatheTransformer;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

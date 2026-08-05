@@ -1,9 +1,13 @@
-package survivalblock.train_across_time.common.remap;
+package survivalblock.train_across_time.common;
 
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
-import survivalblock.train_across_time.common.TATConstants;
+import survivalblock.train_across_time.common.remap.MixinClassRemapper;
+import survivalblock.train_across_time.common.patch.WatheClassPatches;
+import survivalblock.train_across_time.common.remap.WatheMappingsCache;
+import survivalblock.train_across_time.common.remap.WatheRemapper;
+import survivalblock.train_across_time.common.util.ClassNameVisitor;import survivalblock.train_across_time.common.util.ClassOutputInfo;import survivalblock.train_across_time.common.util.EndClassVisitException;import survivalblock.train_across_time.common.util.TransformedClass;
 
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
