@@ -67,7 +67,7 @@ public class TATLanguageAdapter implements LanguageAdapter {
 
         TATConstants.PLATFORM.info("Successfully loaded java agent " + AgentLoader.INSTRUMENTATION);
 
-        TATConstants.PLATFORM.info("Loaded mixin classes: " + Arrays.stream(AgentLoader.INSTRUMENTATION.getAllLoadedClasses()).filter(c -> c.getName().contains("spongepowered")).toList());
+        TATConstants.PLATFORM.info("Already loaded mixin classes: " + Arrays.stream(AgentLoader.INSTRUMENTATION.getAllLoadedClasses()).filter(c -> c.getName().contains("spongepowered")).toList());
 
         AgentLoader.INSTRUMENTATION.addTransformer(new ClassFileTransformer() {
             @Override

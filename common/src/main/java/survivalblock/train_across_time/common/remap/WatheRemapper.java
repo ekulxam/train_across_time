@@ -40,6 +40,7 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/world/level/block/entity/BlockEntityType$Builder" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder";
             case "net/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder$Factory";
             case "net/minecraft/world/entity/projectile/ThrowableItemProjectile" -> "net/minecraft/world/entity/projectile/throwableitemprojectile/ThrowableItemProjectile";
+            case "net/minecraft/client/particle/TextureSheetParticle" -> "net/minecraft/client/particle/SingleQuadParticle";
 
             case "org/ladysnake/cca/api/v3/world/WorldComponentInitializer" -> "org/ladysnake/cca/api/v3/level/LevelComponentInitializer";
             case "org/ladysnake/cca/api/v3/world/WorldComponentFactoryRegistry" -> "org/ladysnake/cca/api/v3/level/LevelComponentFactoryRegistry";
@@ -49,6 +50,12 @@ public class WatheRemapper extends Remapper {
             case "net/fabricmc/fabric/api/itemgroup/v1/FabricItemGroupEntries" -> "net/fabricmc/fabric/api/creativetab/v1/FabricCreativeModeTabOutput";
             case "net/fabricmc/fabric/api/itemgroup/v1/FabricItemGroup" -> "net/fabricmc/fabric/api/creativetab/v1/FabricCreativeModeTab";
             case "net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents$StartWorldTick" -> "net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents$StartLevelTick";
+            case "net/fabricmc/fabric/api/client/particle/v1/ParticleFactoryRegistry" -> "net/fabricmc/fabric/api/client/particle/v1/ParticleProviderRegistry";
+            case "net/fabricmc/fabric/api/client/particle/v1/ParticleFactoryRegistry$PendingParticleFactory" -> "net/fabricmc/fabric/api/client/particle/v1/ParticleProviderRegistry$PendingParticleProvider";
+            case "net/fabricmc/fabric/api/client/particle/v1/FabricSpriteProvider" -> "net/fabricmc/fabric/api/client/particle/v1/FabricSpriteSet";
+            case "net/fabricmc/fabric/api/client/rendering/v1/EntityModelLayerRegistry" -> "net/fabricmc/fabric/api/client/rendering/v1/ModelLayerRegistry";
+            case "net/fabricmc/fabric/api/client/rendering/v1/EntityModelLayerRegistry$TexturedModelDataProvider" -> "net/fabricmc/fabric/api/client/rendering/v1/ModelLayerRegistry$TexturedLayerDefinitionProvider";
+            case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents" -> "net/fabricmc/fabric/api/client/rendering/v1/LevelRenderEvents";
 
             case "net/minecraft/world/ItemInteractionResult" -> "net/minecraft/world/InteractionResult";
 
@@ -58,6 +65,11 @@ public class WatheRemapper extends Remapper {
         internalName = switch (info.className) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (internalName) {
                 case "net/minecraft/world/item/Tiers" -> "net/minecraft/world/item/ToolMaterial";
+
+                default -> internalName;
+            };
+            case "dev/doctor4t/wathe/mixin/client/items/BipedEntityModelMixin" -> switch (internalName) {
+                case "net/minecraft/world/entity/LivingEntity" -> "net/minecraft/client/renderer/entity/state/HumanoidRenderState";
 
                 default -> internalName;
             };
@@ -111,6 +123,11 @@ public class WatheRemapper extends Remapper {
 
                 default -> name;
             };
+            case "dev/doctor4t/wathe/mixin/client/items/BipedEntityModelMixin" -> switch (name) {
+                case "getMainHandItem" -> "getMainHandItemStack";
+
+                default -> name;
+            };
 
             default -> name;
         };
@@ -153,6 +170,12 @@ public class WatheRemapper extends Remapper {
         name = switch (owner) {
             case "net/minecraft/world/level/block/Blocks" -> switch (name) {
                 case "CHAIN" -> "IRON_CHAIN";
+
+                default -> name;
+            };
+            case "net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents" -> switch (name) {
+                case "START_WORLD_TICK" -> "START_LEVEL_TICK";
+                case "END_WORLD_TICK" -> "END_LEVEL_TICK";
 
                 default -> name;
             };

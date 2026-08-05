@@ -843,6 +843,11 @@ public class WatheClassPatches {
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("tickWithoutFearOfCrashing"));
         });
+        register(List.of(
+                "dev/doctor4t/wathe/mixin/client/restrictions/EntityRendererMixin"
+        ), (node, info) -> {
+            node.methods.removeIf(method -> method.name.equals("renderLabelIfPresent"));
+        });
         /*
         register(List.of(
                 "dev/doctor4t/wathe/client/render/entity/Player"
