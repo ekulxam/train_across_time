@@ -29,6 +29,28 @@ public class InsnPointer<T extends AbstractInsnNode, S extends InsnPointer<T, S>
         return self();
     }
 
+    public S lastOrdinal() {
+        return ordinal(Integer.MAX_VALUE);
+    }
+
+    private boolean test(AbstractInsnNode insn) {
+        if (insn.getType() == type || type == -1) {
+            if (predicate.test(self(), (T) insn)) {
+                return true;
+            } else {
+                if (debug) {
+                    TATConstants.PLATFORM.info("\t\tFailed predicate");
+                }
+            }
+        } else {
+            if (debug) {
+                TATConstants.PLATFORM.info("\t\tWrong type, expected " + type + " but got " + insn.getType());
+            }
+        }
+
+        return false;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public Optional<T> find(InsnList insns) {
@@ -36,15 +58,29 @@ public class InsnPointer<T extends AbstractInsnNode, S extends InsnPointer<T, S>
             TATConstants.PLATFORM.info("Locating " + this + " in " + insns);
         }
 
-        var i = 0;
+        if (ordinal == Integer.MAX_VALUE) {
+            var match = Optional.<T>empty();
 
-        for (AbstractInsnNode insn : insns) {
-            if (debug) {
-                TATConstants.PLATFORM.info("\tTesting opcode #" + insn.getOpcode() + " " + insn);
+            for (AbstractInsnNode insn : insns) {
+                if (debug) {
+                    TATConstants.PLATFORM.info("\tTesting opcode #" + insn.getOpcode() + " " + insn);
+                }
+
+                if (test(insn)) {
+                    match = Optional.of((T) insn);
+                }
             }
 
-            if (insn.getType() == type || type == -1) {
-                if (predicate.test(self(), (T) insn)) {
+            return match;
+        } else {
+            var i = 0;
+
+            for (AbstractInsnNode insn : insns) {
+                if (debug) {
+                    TATConstants.PLATFORM.info("\tTesting opcode #" + insn.getOpcode() + " " + insn);
+                }
+
+                if (test(insn)) {
                     if (i == ordinal || ordinal == -1) {
                         if (debug) {
                             TATConstants.PLATFORM.info("\t\tFound a match!");
@@ -58,19 +94,11 @@ public class InsnPointer<T extends AbstractInsnNode, S extends InsnPointer<T, S>
                     }
 
                     i++;
-                } else {
-                    if (debug) {
-                        TATConstants.PLATFORM.info("\t\tFailed predicate");
-                    }
-                }
-            } else {
-                if (debug) {
-                    TATConstants.PLATFORM.info("\t\tWrong type, expected " + type + " but got " + insn.getType());
                 }
             }
-        }
 
-        return Optional.empty();
+            return Optional.empty();
+        }
     }
 
     /**

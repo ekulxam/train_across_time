@@ -36,7 +36,6 @@ public class WatheRemapper extends Remapper {
 
         internalName = switch (internalName) {
             case "net/minecraft/resources/ResourceLocation" -> "net/minecraft/resources/Identifier";
-            case "net/minecraft/client/resources/model/ModelResourceLocation" -> "net/minecraft/client/model/geom/ModelLayerLocation";
             case "net/minecraft/world/InteractionResultHolder", "net/minecraft/world/ItemInteractionResult" -> "net/minecraft/world/InteractionResult";
             case "net/minecraft/world/level/block/state/properties/DirectionProperty" -> "net/minecraft/world/level/block/state/properties/EnumProperty";
             case "net/minecraft/Util" -> "net/minecraft/util/Util";
@@ -60,6 +59,8 @@ public class WatheRemapper extends Remapper {
             case "net/fabricmc/fabric/api/client/rendering/v1/EntityModelLayerRegistry" -> "net/fabricmc/fabric/api/client/rendering/v1/ModelLayerRegistry";
             case "net/fabricmc/fabric/api/client/rendering/v1/EntityModelLayerRegistry$TexturedModelDataProvider" -> "net/fabricmc/fabric/api/client/rendering/v1/ModelLayerRegistry$TexturedLayerDefinitionProvider";
             case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents" -> "net/fabricmc/fabric/api/client/rendering/v1/level/LevelRenderEvents";
+            case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Last" -> "net/fabricmc/fabric/api/client/rendering/v1/level/LevelRenderEvents$EndMain";
+            case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderContext" -> "net/fabricmc/fabric/api/client/rendering/v1/level/LevelRenderContext";
 
             default -> internalName;
         };
@@ -178,6 +179,11 @@ public class WatheRemapper extends Remapper {
             case "net/fabricmc/fabric/api/client/event/lifecycle/v1/ClientTickEvents" -> switch (name) {
                 case "START_WORLD_TICK" -> "START_LEVEL_TICK";
                 case "END_WORLD_TICK" -> "END_LEVEL_TICK";
+
+                default -> name;
+            };
+            case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents" -> switch (name) {
+                case "LAST" -> "END_MAIN";
 
                 default -> name;
             };

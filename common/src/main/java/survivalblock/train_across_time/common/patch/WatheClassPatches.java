@@ -17,15 +17,10 @@ package survivalblock.train_across_time.common.patch;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-import org.objectweb.asm.util.CheckClassAdapter;
-import org.objectweb.asm.util.TraceClassVisitor;import survivalblock.train_across_time.common.TATConstants;
+import survivalblock.train_across_time.common.TATConstants;
 import survivalblock.train_across_time.common.util.ClassOutputInfo;
-import survivalblock.train_across_time.common.util.TransformedClass;
 import survivalblock.train_across_time.common.util.ptr.InsnPointer;
 
-import java.io.IOException;
-import java.io.PrintWriter;import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -33,7 +28,7 @@ import java.util.function.Consumer;
 /**
  * @author Typho
  */
-@SuppressWarnings({"SwitchStatementWithTooFewBranches", "unchecked"})
+@SuppressWarnings({"SwitchStatementWithTooFewBranches"})
 public class WatheClassPatches {
     private WatheClassPatches() {
     }
@@ -46,13 +41,30 @@ public class WatheClassPatches {
 
     public static final Map<String, BiConsumer<ClassNode, ClassOutputInfo>> PATCHES = new HashMap<>();
 
-    public static void register(List<String> classes, BiConsumer<ClassNode, ClassOutputInfo> patch) {
+    public static void register(Set<String> classes, BiConsumer<ClassNode, ClassOutputInfo> patch) {
         for (String cls : classes) {
             PATCHES.merge(cls, patch, (a, b) -> (node, info) -> {
                 a.accept(node, info);
                 b.accept(node, info);
             });
         }
+    }
+
+    @SuppressWarnings("unused")
+    public static void addDebugLog(InsnList insns, String message) {
+        insns.add(new FieldInsnNode(
+                Opcodes.GETSTATIC,
+                "java/lang/System",
+                "out",
+                "Ljava/io/PrintStream;"
+        ));
+        insns.add(new LdcInsnNode(message));
+        insns.add(new MethodInsnNode(
+                Opcodes.INVOKEVIRTUAL,
+                "java/io/PrintStream",
+                "println",
+                "(Ljava/lang/String;)V"
+        ));
     }
 
     public static void applyItemIds(MethodNode method, Map<Integer, String> fallbacks) {
@@ -108,34 +120,34 @@ public class WatheClassPatches {
         });
     }
 
-    public static <T extends AbstractInsnNode> boolean transmuteInsn(
+    public static <T extends AbstractInsnNode> void transmuteInsn(
             ClassNode node,
             String name,
             InsnPointer<T, ?> at,
             Consumer<T> transmuter
     ) {
-        return applyToMethod(node, name, method -> {
+        applyToMethod(node, name, method -> {
             transmuter.accept(at.findOrThrow(method.instructions));
         });
     }
 
-    public static boolean spliceMethod(
+    public static void spliceMethod(
             ClassNode node,
             String name,
             InsnPointer<?, ?> at
     ) {
-        return applyToMethod(node, name, method -> {
+        applyToMethod(node, name, method -> {
             method.instructions.remove(at.findOrThrow(method.instructions));
         });
     }
 
-    public static boolean spliceMethod(
+    public static void spliceMethod(
             ClassNode node,
             String name,
             InsnPointer<?, ?> at,
             BiConsumer<MethodNode, InsnList> replacement
     ) {
-        return applyToMethod(node, name, method -> {
+        applyToMethod(node, name, method -> {
             var atNode = at.findOrThrow(method.instructions);
 
             var insns = new InsnList();
@@ -146,13 +158,13 @@ public class WatheClassPatches {
         });
     }
 
-    public static boolean spliceMethod(
+    public static void spliceMethod(
             ClassNode node,
             String name,
             InsnPointer<?, ?> from,
             InsnPointer<?, ?> to
     ) {
-        return applyToMethod(node, name, method -> {
+        applyToMethod(node, name, method -> {
             var fromNode = from.findOrThrow(method.instructions);
             var toNode = to.findOrThrow(method.instructions);
 
@@ -173,14 +185,14 @@ public class WatheClassPatches {
         });
     }
 
-    public static boolean spliceMethod(
+    public static void spliceMethod(
             ClassNode node,
             String name,
             InsnPointer<?, ?> from,
             InsnPointer<?, ?> to,
             BiConsumer<MethodNode, InsnList> replacement
     ) {
-        return applyToMethod(node, name, method -> {
+        applyToMethod(node, name, method -> {
             var fromNode = from.findOrThrow(method.instructions);
             var toNode = to.findOrThrow(method.instructions);
 
@@ -206,7 +218,7 @@ public class WatheClassPatches {
         });
     }
 
-    public static boolean applyToMethod(ClassNode node, String name, Consumer<MethodNode> action) {
+    public static void applyToMethod(ClassNode node, String name, Consumer<MethodNode> action) {
         var found = false;
 
         for (MethodNode methodNode : node.methods) {
@@ -216,10 +228,12 @@ public class WatheClassPatches {
             }
         }
 
-        return found;
+        if (!found) {
+            throw new NullPointerException("No method '" + name + "' in class " + node.name);
+        }
     }
 
-    public static boolean applyToField(ClassNode node, String name, Consumer<FieldNode> action) {
+    public static void applyToField(ClassNode node, String name, Consumer<FieldNode> action) {
         var found = false;
 
         for (FieldNode fieldNode : node.fields) {
@@ -229,7 +243,9 @@ public class WatheClassPatches {
             }
         }
 
-        return found;
+        if (!found) {
+            throw new NullPointerException("No field '" + name + "' in class " + node.name);
+        }
     }
 
     public static void applyBlockIds(MethodNode method, Map<Integer, String> fallbacks) {
@@ -385,10 +401,8 @@ public class WatheClassPatches {
         });
     }
 
-    private static int COUNTER = 0;
-
     static {
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/cca/AutoStartComponent",
                 "dev/doctor4t/wathe/cca/GameRoundEndComponent",
                 "dev/doctor4t/wathe/cca/GameTimeComponent",
@@ -407,7 +421,7 @@ public class WatheClassPatches {
             node.interfaces.add("org/ladysnake/cca/api/v3/component/Component");
         });
 
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/index/WatheItems"
         ), (node, info) -> {
             applyToMethod(node, "<clinit>", method -> {
@@ -420,7 +434,7 @@ public class WatheClassPatches {
             });
         });
 
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/ratatouille/util/registrar/BlockRegistrar"
         ), (node, info) -> {
             applyToMethod(node, "createWithItem", method -> {
@@ -517,7 +531,7 @@ public class WatheClassPatches {
                 }
             });
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/ratatouille/util/registrar/EntityTypeRegistrar"
         ), (node, info) -> {
             applyToMethod(node, "create", method -> {
@@ -569,7 +583,7 @@ public class WatheClassPatches {
             });
         });
 
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/ratatouille/index/RatatouilleItems"
         ), (node, info) -> {
             applyToMethod(node, "<clinit>", method -> {
@@ -578,7 +592,7 @@ public class WatheClassPatches {
                 info.computeMaxStackSizes();
             });
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/ratatouille/index/RatatouilleBlocks"
         ), (node, info) -> {
             applyToMethod(node, "<clinit>", method -> {
@@ -587,7 +601,7 @@ public class WatheClassPatches {
                 info.computeMaxStackSizes();
             });
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/index/WatheItems"
         ), (node, info) -> {
             applyToMethod(node, "<clinit>", method -> {
@@ -598,7 +612,7 @@ public class WatheClassPatches {
                 info.computeMaxStackSizes();
             });
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/index/WatheBlocks"
         ), (node, info) -> {
             applyToMethod(node, "<clinit>", method -> {
@@ -649,14 +663,16 @@ public class WatheClassPatches {
                 info.computeMaxStackSizes();
             });
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/util/ShopEntry",
                 "dev/doctor4t/wathe/game/GameConstants$1",
                 "dev/doctor4t/wathe/game/GameConstants$2"
         ), (node, info) -> {
-            applyToField(node, "stack", field -> {
-                field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
-            });
+            if (node.name.equals("dev/doctor4t/wathe/util/ShopEntry")) {
+                applyToField(node, "stack", field -> {
+                    field.desc = field.desc.replace("Lnet/minecraft/world/item/ItemStack", "Lnet/minecraft/world/item/ItemStackTemplate");
+                });
+            }
 
             for (MethodNode method : node.methods) {
                 if ((method.access & Opcodes.ACC_STATIC) == 0) {
@@ -681,7 +697,7 @@ public class WatheClassPatches {
                 }
             }
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/game/GameConstants"
         ), (node, info) -> {
             for (MethodNode methodNode : node.methods) {
@@ -718,10 +734,9 @@ public class WatheClassPatches {
                 }
             }
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/block/entity/SeatEntity",
-                "dev/doctor4t/wathe/entity/FirecrackerEnttiy",
-                "dev/doctor4t/wathe/entity/GrenadeEntity",
+                "dev/doctor4t/wathe/entity/FirecrackerEntity",
                 "dev/doctor4t/wathe/entity/NoteEntity",
                 "dev/doctor4t/wathe/entity/PlayerBodyEntity"
         ), (node, info) -> {
@@ -740,7 +755,7 @@ public class WatheClassPatches {
                 }
             }
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/block/BarrierPanelBlock"
         ), (node, info) -> {
             for (FieldNode field : node.fields) {
@@ -786,21 +801,21 @@ public class WatheClassPatches {
                 }
             });
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/client/render/entity/FirecrackerEntityRenderer"
         ), (node, info) -> {
             if (node.signature != null) {
                 node.signature = node.signature.substring(0, node.signature.indexOf("<")) + "Ldev/doctor4t/wathe/entity/FirecrackerEntity;Lsurvivalblock/train_across_time/provided/client/FirecrackerEntityRenderState;>";
             }
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/client/render/entity/NoteEntityRenderer"
         ), (node, info) -> {
             if (node.signature != null) {
                 node.signature = node.signature.substring(0, node.signature.indexOf("<")) + "Ldev/doctor4t/wathe/entity/NoteEntity;Lsurvivalblock/train_across_time/provided/client/NoteEntityRenderState;>";
             }
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/PlayerEntityMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("wathe$poisonedFoodEffect") || method.name.equals("wathe$eat"));
@@ -815,7 +830,7 @@ public class WatheClassPatches {
             tweakNBTSaveMethod(node, "wathe$saveData", false);
             tweakNBTLoadMethod(node, "wathe$readData", false);
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/MinecraftClientMixin"
         ), (node, info) -> {
             changeInjectionAt(
@@ -826,12 +841,12 @@ public class WatheClassPatches {
                     "target", "Lnet/minecraft/world/entity/player/Inventory;setSelectedSlot(I)V"
             );
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/items/ClientPlayerEntityMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("wathe$disableItemSlowdown"));
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/AbstractClientPlayerEntityMixin"
         ), (node, info) -> {
             changeInjectionMethod(
@@ -841,13 +856,13 @@ public class WatheClassPatches {
                     "getFieldOfViewModifier(ZF)F"
             );
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/ItemEntityMixin"
         ), (node, info) -> {
             // unused @Shadow that changed so just remove it
             node.fields.removeIf(field -> field.name.equals("thrower"));
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/ServerPlayerEntityMixin"
         ), (node, info) -> {
             changeInjectionAt(
@@ -876,17 +891,17 @@ public class WatheClassPatches {
                     "target", "Lnet/minecraft/world/attribute/BedRule;canSleep(Lnet/minecraft/world/level/Level;)Z"
             );
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/ItemMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("arsenal$setTridentOwner"));
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/PlayerInventoryMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("wathe$invalid"));
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/restrictions/KeyBindingMixin"
         ), (node, info) -> {
             changeInjectionMethod(
@@ -896,33 +911,34 @@ public class WatheClassPatches {
                     "matches(Lnet/minecraft/client/input/KeyEvent;)Z"
             );
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/scenery/ClientWorldMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("wathe$addCustomBlockMarkers"));
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/self/NoteItemMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("useClient"));
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/self/TrimmedBedBlockEntityMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("tickOnClientSide"));
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/self/BeveragePlateBlockEntityMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("tickWithoutFearOfCrashing"));
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/restrictions/EntityRendererMixin"
         ), (node, info) -> {
             node.methods.removeIf(method -> method.name.equals("renderLabelIfPresent"));
         });
-        register(List.of(
-                "dev/doctor4t/ratatouille/client/RatatouilleClient"
+        register(Set.of(
+                "dev/doctor4t/ratatouille/client/RatatouilleClient",
+                "dev/doctor4t/wathe/client/WatheClient"
         ), (node, info) -> {
             spliceMethod(
                     node,
@@ -931,12 +947,12 @@ public class WatheClassPatches {
                             .owner("net/fabricmc/fabric/api/blockrenderlayer/v1/BlockRenderLayerMap")
                             .name("INSTANCE"),
                     InsnPointer.methodCallInterface()
+                            .lastOrdinal()
                             .owner("net/fabricmc/fabric/api/blockrenderlayer/v1/BlockRenderLayerMap")
                             .name("putBlocks")
-                    // TODO I'm pretty sure we need to put code here to register the block render layer, but I can't find what to call? It might be auto detected in modern, not sure. - Typho
             );
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/client/render/block_entity/AnimatableBlockEntityRenderer"
         ), (node, info) -> {
             info.computeMaxStackSizes();
@@ -980,7 +996,7 @@ public class WatheClassPatches {
                         });
             });
         });
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/client/render/block_entity/SmallDoorBlockEntityRenderer",
                 "dev/doctor4t/wathe/client/render/block_entity/WheelBlockEntityRenderer"
         ), (node, info) -> {
@@ -1040,8 +1056,76 @@ public class WatheClassPatches {
                     }
             );
         });
+        register(Set.of(
+                "dev/doctor4t/wathe/client/model/item/KnifeModelLoadingPlugin"
+        ), (node, info) -> {
+            node.fields.removeIf(f -> f.name.equals("KNIFE_MODEL_ID"));
+            spliceMethod(
+                    node,
+                    "<clinit>",
+                    InsnPointer.fieldGetStatic()
+                            .owner("dev/doctor4t/wathe/item/KnifeItem")
+                            .name("ITEM_ID"),
+                    InsnPointer.fieldSetStatic()
+                            .owner(node.name)
+                            .name("KNIFE_MODEL_ID")
+            );
+
+            spliceMethod(
+                    node,
+                    "getModelLocation",
+                    InsnPointer.methodCallInherited()
+                            .owner("net/minecraft/client/resources/model/ModelResourceLocation")
+                            .name("comp_2875")
+            );
+            transmuteInsn(
+                    node,
+                    "getModelLocation",
+                    InsnPointer.fieldGetStatic()
+                            .owner(node.name)
+                            .name("KNIFE_MODEL_ID"),
+                    field -> {
+                        field.owner = "dev/doctor4t/wathe/item/KnifeItem";
+                        field.name = "ITEM_ID";
+                        field.desc = "Lnet/minecraft/resources/Identifier;";
+                    }
+            );
+
+            transmuteInsn(
+                    node,
+                    "lambda$onInitializeModelLoader$1",
+                    InsnPointer.fieldGetStatic()
+                            .owner(node.name)
+                            .name("KNIFE_MODEL_ID"),
+                    field -> {
+                        field.owner = "dev/doctor4t/wathe/item/KnifeItem";
+                        field.name = "ITEM_ID";
+                        field.desc = "Lnet/minecraft/resources/Identifier;";
+                    }
+            );
+            transmuteInsn(
+                    node,
+                    "lambda$onInitializeModelLoader$1",
+                    InsnPointer.methodCallInterface()
+                            .owner("net/fabricmc/fabric/api/client/model/loading/v1/ModelModifier$OnLoad$Context")
+                            .name("topLevelId"),
+                    m -> {
+                        m.desc = "()Lnet/minecraft/resources/Identifier;";
+                    }
+            );
+            transmuteInsn(
+                    node,
+                    "lambda$onInitializeModelLoader$1",
+                    InsnPointer.methodCallInherited()
+                            .owner("net/minecraft/client/resources/model/ModelResourceLocation")
+                            .name("equals"),
+                    m -> {
+                        m.owner = "net/minecraft/resources/Identifier";
+                    }
+            );
+        });
         /*
-        register(List.of(
+        register(Set.of(
                 "dev/doctor4t/wathe/client/render/entity/Player"
         ), (node, info) -> {
             if (node.signature != null) {
