@@ -11,6 +11,15 @@ pluginManagement {
         maven("https://maven.fabricmc.net")
         maven("https://maven.kikugie.dev/snapshots")
         maven("https://maven.kikugie.dev/releases")
+        ivy("https://github.com/TheTypholorian/asm_util/releases/download") {
+            patternLayout {
+                artifact("[revision]/[artifact]-[revision](-[classifier]).[ext]")
+            }
+
+            metadataSources {
+                artifact()
+            }
+        }
     }
 }
 

@@ -1,13 +1,17 @@
 package survivalblock.train_across_time.common;
 
+import net.typho.asm_util.ClassNameVisitor;
+import net.typho.asm_util.error.EndVisitException;
+import net.typho.asm_util.remap.MixinClassRemapper;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
-import survivalblock.train_across_time.common.remap.MixinClassRemapper;
 import survivalblock.train_across_time.common.patch.WatheClassPatches;
 import survivalblock.train_across_time.common.remap.WatheMappingsCache;
 import survivalblock.train_across_time.common.remap.WatheRemapper;
-import survivalblock.train_across_time.common.util.ClassNameVisitor;import survivalblock.train_across_time.common.util.ClassOutputInfo;import survivalblock.train_across_time.common.util.EndClassVisitException;import survivalblock.train_across_time.common.util.TransformedClass;
+import survivalblock.train_across_time.common.util.TransformedClass;
+import survivalblock.train_across_time.common.util.UsedMappingsOutput;
+import survivalblock.train_across_time.common.util.WatheClassOutputInfo;
 
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
@@ -24,12 +28,12 @@ import java.util.function.Supplier;
  */
 public class WatheTransformer {
     public Path debugPath = TATConstants.PLATFORM.debugOutputPath();
-    public ClassOutputInfo.UsedMappingsOutput usedMappingsOutput;
+    public UsedMappingsOutput usedMappingsOutput;
     public WatheMappingsCache mappingsCache = WatheMappingsCache.create();
 
     public WatheTransformer() {
         var mappingsOutputFile = System.getProperty("train_across_time:mappings_output_file");
-        usedMappingsOutput = mappingsOutputFile == null ? ClassOutputInfo.UsedMappingsOutput.NONE : new ClassOutputInfo.UsedMappingsOutput() {
+        usedMappingsOutput = mappingsOutputFile == null ? UsedMappingsOutput.NONE : new UsedMappingsOutput() {
             public final WatheMappingsCache usedMappingsStorage = WatheMappingsCache.createStandalone();
             public final Path outputFile = Paths.get(mappingsOutputFile);
 
@@ -65,7 +69,7 @@ public class WatheTransformer {
             boolean errorIfUnmapped,
             Consumer<ClassVisitor> visitor
     ) {
-        var info = new ClassOutputInfo(usedMappingsOutput);
+        var info = new WatheClassOutputInfo(usedMappingsOutput);
 
         try {
             var node = new ClassNode();
@@ -83,7 +87,7 @@ public class WatheTransformer {
                                 info.className = name;
 
                                 if (!TATConstants.shouldTransformClass(name)) {
-                                    throw new EndClassVisitException();
+                                    throw new EndVisitException();
                                 }
                             }
                     )
@@ -97,7 +101,7 @@ public class WatheTransformer {
             }
 
             return new TransformedClass(node, info);
-        } catch (EndClassVisitException ignored) {
+        } catch (EndVisitException ignored) {
         } catch (Throwable t) {
             TATConstants.PLATFORM.error("Error while processing class " + info.className, t);
         }

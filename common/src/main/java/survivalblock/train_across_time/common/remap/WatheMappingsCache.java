@@ -5,7 +5,10 @@ import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.commons.Remapper;
-import survivalblock.train_across_time.common.TATConstants;import survivalblock.train_across_time.common.WatheTransformer;import survivalblock.train_across_time.common.util.ClassOutputInfo;
+import survivalblock.train_across_time.common.TATConstants;
+import survivalblock.train_across_time.common.WatheTransformer;
+import survivalblock.train_across_time.common.util.UsedMappingsOutput;
+import survivalblock.train_across_time.common.util.WatheClassOutputInfo;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -32,7 +35,7 @@ public abstract class WatheMappingsCache {
     public final Map<String, String> methods = new HashMap<>();
     public final Map<String, String> fields = new HashMap<>();
 
-    public Remapper createRemapper(int api, ClassOutputInfo info, boolean errorIfUnmapped) {
+    public Remapper createRemapper(int api, WatheClassOutputInfo info, boolean errorIfUnmapped) {
         return new Remapper(api) {
             @Override
             public String map(String internalName) {
@@ -41,7 +44,7 @@ public abstract class WatheMappingsCache {
 
                     if (newName == null) {
                         if (errorIfUnmapped) {
-                            info.addError("No class mapping for " + internalName);
+                            info.error("No class mapping for " + internalName);
                         }
                     } else {
                         info.markChanged();
@@ -60,7 +63,7 @@ public abstract class WatheMappingsCache {
 
                     if (newName == null) {
                         if (errorIfUnmapped) {
-                            info.addError("No method mapping for " + name);
+                            info.error("No method mapping for " + name);
                         }
                     } else {
                         info.markChanged();
@@ -79,7 +82,7 @@ public abstract class WatheMappingsCache {
 
                     if (newName == null) {
                         if (errorIfUnmapped) {
-                            info.addError("No field mapping for " + name);
+                            info.error("No field mapping for " + name);
                         }
                     } else {
                         info.markChanged();
@@ -93,7 +96,7 @@ public abstract class WatheMappingsCache {
         };
     }
 
-    public void load(DataInput in, boolean override, ClassOutputInfo.UsedMappingsOutput usedMappingsOutput) throws IOException {
+    public void load(DataInput in, boolean override, UsedMappingsOutput usedMappingsOutput) throws IOException {
         var numClasses = in.readInt();
 
         for (int i = 0; i < numClasses; i++) {
@@ -274,7 +277,7 @@ public abstract class WatheMappingsCache {
             if (extra != null) {
                 for (String path : extra.split(",")) {
                     try (InputStream in = Files.newInputStream(Paths.get(path))) {
-                        load(new DataInputStream(in), true, ClassOutputInfo.UsedMappingsOutput.NONE);
+                        load(new DataInputStream(in), true, UsedMappingsOutput.NONE);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -290,7 +293,7 @@ public abstract class WatheMappingsCache {
 
             try (InputStream in = WatheMappingsCache.class.getClassLoader().getResourceAsStream(MAPPINGS_BIN_LOCATION)) {
                 if (in != null) {
-                    load(new DataInputStream(in), true, ClassOutputInfo.UsedMappingsOutput.NONE);
+                    load(new DataInputStream(in), true, UsedMappingsOutput.NONE);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -301,7 +304,7 @@ public abstract class WatheMappingsCache {
             if (extra != null) {
                 for (String path : extra.split(",")) {
                     try (InputStream in = Files.newInputStream(Paths.get(path))) {
-                        load(new DataInputStream(in), true, ClassOutputInfo.UsedMappingsOutput.NONE);
+                        load(new DataInputStream(in), true, UsedMappingsOutput.NONE);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }

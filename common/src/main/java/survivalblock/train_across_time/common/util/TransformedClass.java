@@ -5,7 +5,7 @@ import org.objectweb.asm.tree.ClassNode;
 
 public record TransformedClass(
         ClassNode node,
-        ClassOutputInfo info
+        WatheClassOutputInfo info
 ) {
     public byte @Nullable [] toByteArray() {
         var writer = info.end();

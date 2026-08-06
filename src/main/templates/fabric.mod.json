@@ -47,7 +47,8 @@
     "ratatouille.mixins.json"
   ],
   "depends": {
-    "minecraft": "~26.1"
+    "minecraft": "~26.1",
+    "fabric-language-kotlin": "*"
   },
   "provides": [
     "wathe",

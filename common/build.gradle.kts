@@ -8,6 +8,15 @@ version = "1.0.0"
 repositories {
     mavenCentral()
     maven("https://maven.fabricmc.net")
+    ivy("https://github.com/TheTypholorian/asm_util/releases/download") {
+        patternLayout {
+            artifact("[revision]/[artifact]-[revision](-[classifier]).[ext]")
+        }
+
+        metadataSources {
+            artifact()
+        }
+    }
 }
 
 dependencies {
@@ -16,5 +25,7 @@ dependencies {
     implementation("org.ow2.asm:asm:9.10.1")
     implementation("org.ow2.asm:asm-tree:9.10.1")
     implementation("org.ow2.asm:asm-util:9.10.1")
+    implementation("org.ow2.asm:asm-commons:9.10.1")
     implementation("org.jetbrains:annotations:26.0.2")
+    implementation("net.typho:asm_util:1.0.3")
 }

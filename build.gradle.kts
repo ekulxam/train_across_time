@@ -84,10 +84,20 @@ repositories {
     maven("https://maven.uuid.gg/releases") // datasync
     maven("https://maven.midnightdust.eu/releases") // midnightlib
     maven("https://maven.bawnorton.com/releases") // mixinsquared
+    ivy("https://github.com/TheTypholorian/asm_util/releases/download") { // asm util
+        patternLayout {
+            artifact("[revision]/[artifact]-[revision](-[classifier]).[ext]")
+        }
+
+        metadataSources {
+            artifact()
+        }
+    }
 }
 
 dependencies {
     modstitchModImplementation("net.fabricmc.fabric-api:fabric-api:0.155.2+26.1.2")
+    modstitchModImplementation("maven.modrinth:fabric-language-kotlin:1.13.13+kotlin.2.4.10") // for asm util
 
     // TODO: versioned deps
 
@@ -118,6 +128,7 @@ dependencies {
     //include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
 
     implementation("net.fabricmc:tiny-remapper:0.14.0")
+    implementation("net.typho:asm_util:1.0.3")
     implementation(project(":common")) // TODO JiJ
 
     // if needed

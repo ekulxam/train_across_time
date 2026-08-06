@@ -16,16 +16,16 @@
 package survivalblock.train_across_time.common.remap;
 
 import org.objectweb.asm.commons.Remapper;
-import survivalblock.train_across_time.common.util.ClassOutputInfo;
+import survivalblock.train_across_time.common.util.WatheClassOutputInfo;
 
 /**
  * @author Typho
  */
 @SuppressWarnings({"SwitchStatementWithTooFewBranches"})
 public class WatheRemapper extends Remapper {
-    public final ClassOutputInfo info;
+    public final WatheClassOutputInfo info;
 
-    public WatheRemapper(int api, ClassOutputInfo info) {
+    public WatheRemapper(int api, WatheClassOutputInfo info) {
         super(api);
         this.info = info;
     }
