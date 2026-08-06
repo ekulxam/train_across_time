@@ -4,7 +4,7 @@ import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;import survivalblock.train_across_time.common.TATConstants;
 
 import java.util.Objects;
 
@@ -13,7 +13,17 @@ public final class ConstantInsnPointer extends InsnPointer<LdcInsnNode, Constant
 
     ConstantInsnPointer() {
         super(AbstractInsnNode.LDC_INSN);
-        predicate = n -> Objects.equals(n.cst, value);
+        predicate = (self, n) -> {
+            if (!Objects.equals(n.cst, value)) {
+                if (self.debug) {
+                    TATConstants.PLATFORM.info("\t\tExpected constant value " + value + " but got " + n.cst);
+                }
+
+                return false;
+            }
+
+            return true;
+        };
     }
 
     public ConstantInsnPointer value(int value) {

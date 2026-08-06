@@ -5,9 +5,10 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
+import survivalblock.train_across_time.common.TATConstants;
 
 import java.util.Optional;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
 @SuppressWarnings("unchecked")
 public class InsnPointer<T extends AbstractInsnNode, S extends InsnPointer<T, S>> extends ASMPointer<T, InsnList, S> {
@@ -18,7 +19,7 @@ public class InsnPointer<T extends AbstractInsnNode, S extends InsnPointer<T, S>
         this.type = type;
     }
 
-    private InsnPointer(int type, Predicate<T> predicate) {
+    private InsnPointer(int type, BiPredicate<S, T> predicate) {
         this.type = type;
         this.predicate = predicate;
     }
@@ -31,11 +32,41 @@ public class InsnPointer<T extends AbstractInsnNode, S extends InsnPointer<T, S>
     @SuppressWarnings("unchecked")
     @Override
     public Optional<T> find(InsnList insns) {
+        if (debug) {
+            TATConstants.PLATFORM.info("Locating " + this + " in " + insns);
+        }
+
         var i = 0;
 
         for (AbstractInsnNode insn : insns) {
-            if ((insn.getType() == type || type == -1) && predicate.test((T) insn) && (i++ == ordinal || ordinal == -1)) {
-                return Optional.of((T) insn);
+            if (debug) {
+                TATConstants.PLATFORM.info("\tTesting opcode #" + insn.getOpcode() + " " + insn);
+            }
+
+            if (insn.getType() == type || type == -1) {
+                if (predicate.test(self(), (T) insn)) {
+                    if (i == ordinal || ordinal == -1) {
+                        if (debug) {
+                            TATConstants.PLATFORM.info("\t\tFound a match!");
+                        }
+
+                        return Optional.of((T) insn);
+                    } else {
+                        if (debug) {
+                            TATConstants.PLATFORM.info("\t\tFailed ordinal test, expected " + ordinal + " but got " + i);
+                        }
+                    }
+
+                    i++;
+                } else {
+                    if (debug) {
+                        TATConstants.PLATFORM.info("\t\tFailed predicate");
+                    }
+                }
+            } else {
+                if (debug) {
+                    TATConstants.PLATFORM.info("\t\tWrong type, expected " + type + " but got " + insn.getType());
+                }
             }
         }
 
@@ -94,7 +125,7 @@ public class InsnPointer<T extends AbstractInsnNode, S extends InsnPointer<T, S>
     /**
      * Instance field get
      */
-    public static FieldInsnPointer fieldGetInstance() {
+    public static FieldInsnPointer fieldGet() {
         return fieldOperation().opcode(Opcodes.GETFIELD);
     }
 
@@ -108,7 +139,7 @@ public class InsnPointer<T extends AbstractInsnNode, S extends InsnPointer<T, S>
     /**
      * Instance field set
      */
-    public static FieldInsnPointer fieldSetInstance() {
+    public static FieldInsnPointer fieldSet() {
         return fieldOperation().opcode(Opcodes.PUTFIELD);
     }
 
@@ -205,13 +236,13 @@ public class InsnPointer<T extends AbstractInsnNode, S extends InsnPointer<T, S>
      * No-argument instruction with a specific opcode (constants, returns, pops, etc.)
      */
     public static InsnPointer<InsnNode, ?> opcodeSimple(int opcode) {
-        return new InsnPointer<>(AbstractInsnNode.INSN, n -> n.getOpcode() == opcode);
+        return new InsnPointer<>(AbstractInsnNode.INSN, (self, n) -> n.getOpcode() == opcode);
     }
 
     /**
      * Any instruction with a specific opcode
      */
     public static InsnPointer<AbstractInsnNode, ?> opcodeAny(int opcode) {
-        return new InsnPointer<>(-1, n -> n.getOpcode() == opcode);
+        return new InsnPointer<>(-1, (self, n) -> n.getOpcode() == opcode);
     }
 }

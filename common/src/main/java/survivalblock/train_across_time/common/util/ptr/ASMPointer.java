@@ -5,35 +5,44 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 @SuppressWarnings("unchecked")
 abstract class ASMPointer<R, T, S> {
-    protected Predicate<R> predicate;
+    protected BiPredicate<S, R> predicate;
+    protected boolean debug = false;
 
     protected S self() {
         return (S) this;
     }
 
-    public S and(Predicate<R> predicate) {
+    public S debug() {
+        this.debug = true;
+        return self();
+    }
+
+    public S and(BiPredicate<S, R> predicate) {
         this.predicate = this.predicate.and(predicate);
         return self();
     }
 
-    public S and(ASMPointer<R, T, ?> pointer) {
+    public S and(ASMPointer<R, T, S> pointer) {
         return and(pointer.predicate);
     }
 
-    public S or(Predicate<R> predicate) {
+    public S or(BiPredicate<S, R> predicate) {
         this.predicate = this.predicate.or(predicate);
         return self();
     }
 
-    public S or(ASMPointer<R, T, ?> pointer) {
+    public S or(ASMPointer<R, T, S> pointer) {
         return or(pointer.predicate);
     }
 
+    /**
+     * The first value that matches this pointer, or empty if none match
+     */
     public abstract Optional<R> find(T target);
 
     public R findOrThrow(T target) {

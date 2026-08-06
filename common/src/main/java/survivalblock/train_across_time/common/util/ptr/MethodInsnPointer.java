@@ -2,8 +2,8 @@ package survivalblock.train_across_time.common.util.ptr;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+import survivalblock.train_across_time.common.TATConstants;
 
-@SuppressWarnings("RedundantIfStatement")
 public final class MethodInsnPointer extends InsnPointer<MethodInsnNode, MethodInsnPointer> {
     private int opcode = -1;
     private String owner;
@@ -12,20 +12,36 @@ public final class MethodInsnPointer extends InsnPointer<MethodInsnNode, MethodI
 
     MethodInsnPointer() {
         super(AbstractInsnNode.METHOD_INSN);
-        predicate = n -> {
+        predicate = (self, n) -> {
             if (opcode != -1 && n.getOpcode() != opcode) {
+                if (self.debug) {
+                    TATConstants.PLATFORM.info("\t\tExpected opcode " + opcode + " but got " + n.getOpcode());
+                }
+
                 return false;
             }
 
             if (owner != null && !n.owner.equals(owner)) {
+                if (self.debug) {
+                    TATConstants.PLATFORM.info("\t\tExpected owner " + owner + " but got " + n.owner);
+                }
+
                 return false;
             }
 
             if (name != null && !n.name.equals(name)) {
+                if (self.debug) {
+                    TATConstants.PLATFORM.info("\t\tExpected name " + name + " but got " + n.name);
+                }
+
                 return false;
             }
 
             if (desc != null && !n.desc.equals(desc)) {
+                if (self.debug) {
+                    TATConstants.PLATFORM.info("\t\tExpected desc " + desc + " but got " + n.desc);
+                }
+
                 return false;
             }
 

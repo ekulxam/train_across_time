@@ -17,8 +17,15 @@ package survivalblock.train_across_time.common.patch;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-import survivalblock.train_across_time.common.TATConstants;import survivalblock.train_across_time.common.util.ClassOutputInfo;import survivalblock.train_across_time.common.util.ptr.InsnPointer;
+import org.objectweb.asm.util.CheckClassAdapter;
+import org.objectweb.asm.util.TraceClassVisitor;import survivalblock.train_across_time.common.TATConstants;
+import survivalblock.train_across_time.common.util.ClassOutputInfo;
+import survivalblock.train_across_time.common.util.TransformedClass;
+import survivalblock.train_across_time.common.util.ptr.InsnPointer;
 
+import java.io.IOException;
+import java.io.PrintWriter;import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -101,19 +108,84 @@ public class WatheClassPatches {
         });
     }
 
+    public static <T extends AbstractInsnNode> boolean transmuteInsn(
+            ClassNode node,
+            String name,
+            InsnPointer<T, ?> at,
+            Consumer<T> transmuter
+    ) {
+        return applyToMethod(node, name, method -> {
+            transmuter.accept(at.findOrThrow(method.instructions));
+        });
+    }
+
+    public static boolean spliceMethod(
+            ClassNode node,
+            String name,
+            InsnPointer<?, ?> at
+    ) {
+        return applyToMethod(node, name, method -> {
+            method.instructions.remove(at.findOrThrow(method.instructions));
+        });
+    }
+
+    public static boolean spliceMethod(
+            ClassNode node,
+            String name,
+            InsnPointer<?, ?> at,
+            BiConsumer<MethodNode, InsnList> replacement
+    ) {
+        return applyToMethod(node, name, method -> {
+            var atNode = at.findOrThrow(method.instructions);
+
+            var insns = new InsnList();
+            replacement.accept(method, insns);
+
+            method.instructions.insertBefore(atNode, insns);
+            method.instructions.remove(atNode);
+        });
+    }
+
+    public static boolean spliceMethod(
+            ClassNode node,
+            String name,
+            InsnPointer<?, ?> from,
+            InsnPointer<?, ?> to
+    ) {
+        return applyToMethod(node, name, method -> {
+            var fromNode = from.findOrThrow(method.instructions);
+            var toNode = to.findOrThrow(method.instructions);
+
+            if (fromNode == toNode) {
+                method.instructions.remove(fromNode);
+            } else {
+                while (fromNode.getNext() != toNode) {
+                    method.instructions.remove(fromNode.getNext());
+
+                    if (fromNode.getNext() == null) {
+                        throw new IllegalStateException();
+                    }
+                }
+
+                method.instructions.remove(fromNode);
+                method.instructions.remove(toNode);
+            }
+        });
+    }
+
     public static boolean spliceMethod(
             ClassNode node,
             String name,
             InsnPointer<?, ?> from,
             InsnPointer<?, ?> to,
-            Consumer<InsnList> replacement
+            BiConsumer<MethodNode, InsnList> replacement
     ) {
         return applyToMethod(node, name, method -> {
             var fromNode = from.findOrThrow(method.instructions);
             var toNode = to.findOrThrow(method.instructions);
 
             var insns = new InsnList();
-            replacement.accept(insns);
+            replacement.accept(method, insns);
 
             method.instructions.insertBefore(fromNode, insns);
 
@@ -122,6 +194,10 @@ public class WatheClassPatches {
             } else {
                 while (fromNode.getNext() != toNode) {
                     method.instructions.remove(fromNode.getNext());
+
+                    if (fromNode.getNext() == null) {
+                        throw new IllegalStateException();
+                    }
                 }
 
                 method.instructions.remove(fromNode);
@@ -134,7 +210,7 @@ public class WatheClassPatches {
         var found = false;
 
         for (MethodNode methodNode : node.methods) {
-            if (methodNode.name.equals(name)) {
+            if ((methodNode.access & Opcodes.ACC_BRIDGE) == 0 && methodNode.name.equals(name)) {
                 action.accept(methodNode);
                 found = true;
             }
@@ -308,6 +384,8 @@ public class WatheClassPatches {
             }
         });
     }
+
+    private static int COUNTER = 0;
 
     static {
         register(List.of(
@@ -854,9 +932,111 @@ public class WatheClassPatches {
                             .name("INSTANCE"),
                     InsnPointer.methodCallInterface()
                             .owner("net/fabricmc/fabric/api/blockrenderlayer/v1/BlockRenderLayerMap")
-                            .name("putBlocks"),
-                    insns -> {
-                        // TODO I'm pretty sure we need to put code here to register the block render layer, but I can't find what to call? It might be auto detected in modern, not sure. - Typho
+                            .name("putBlocks")
+                    // TODO I'm pretty sure we need to put code here to register the block render layer, but I can't find what to call? It might be auto detected in modern, not sure. - Typho
+            );
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/client/render/block_entity/AnimatableBlockEntityRenderer"
+        ), (node, info) -> {
+            info.computeMaxStackSizes();
+            info.computeFrames();
+
+            applyToMethod(node, "<init>", method -> {
+                for (LocalVariableNode var : method.localVariables) {
+                    if (var.index >= 1) {
+                        var.index++;
+                    }
+                }
+
+                method.desc = method.desc.replace("(", "(Lnet/minecraft/client/model/geom/ModelPart;");
+
+                if (method.signature != null) {
+                    method.signature = method.signature.replace("(", "(Lnet/minecraft/client/model/geom/ModelPart;");
+                }
+
+                var thisVar = method.localVariables.getFirst();
+                method.localVariables.add(1, new LocalVariableNode(
+                        "root",
+                        "Lnet/minecraft/client/model/geom/ModelPart;",
+                        null,
+                        thisVar.start,
+                        thisVar.end,
+                        1
+                ));
+
+                if (method.parameters != null) {
+                    method.parameters.addFirst(new ParameterNode(
+                            "root",
+                            0
+                    ));
+                }
+
+                InsnPointer.methodCallDirect()
+                        .name("<init>")
+                        .findOrThrow(method.instructions, insn -> {
+                            insn.desc = insn.desc.replace("(", "(Lnet/minecraft/client/model/geom/ModelPart;");
+                            method.instructions.insertBefore(insn, new VarInsnNode(Opcodes.ALOAD, method.maxLocals));
+                        });
+            });
+        });
+        register(List.of(
+                "dev/doctor4t/wathe/client/render/block_entity/SmallDoorBlockEntityRenderer",
+                "dev/doctor4t/wathe/client/render/block_entity/WheelBlockEntityRenderer"
+        ), (node, info) -> {
+            info.computeFrames();
+
+            node.fields.removeIf(m -> m.name.equals("part"));
+            node.methods.removeIf(m -> m.name.equals("root"));
+
+            spliceMethod(
+                    node,
+                    "<init>",
+                    InsnPointer.localOperation()
+                            .id(0),
+                    InsnPointer.methodCallDirect()
+                            .owner("dev/doctor4t/wathe/client/render/block_entity/AnimatableBlockEntityRenderer")
+                            .name("<init>"),
+                    (method, insns) -> {
+                        insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                        insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                        insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                        insns.add(InsnPointer.fieldGetStatic()
+                                .desc("Lnet/minecraft/client/model/geom/ModelLayerLocation;")
+                                .findOrThrow(method.instructions)
+                                .clone(Map.of()));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKEVIRTUAL,
+                                "net/minecraft/client/renderer/blockentity/BlockEntityRendererProvider$Context",
+                                "bakeLayer",
+                                "(Lnet/minecraft/client/model/geom/ModelLayerLocation;)Lnet/minecraft/client/model/geom/ModelPart;"
+                        ));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKESPECIAL,
+                                "dev/doctor4t/wathe/client/render/block_entity/AnimatableBlockEntityRenderer",
+                                "<init>",
+                                "(Lnet/minecraft/client/model/geom/ModelPart;)V"
+                        ));
+                    }
+            );
+            spliceMethod(
+                    node,
+                    "<init>",
+                    InsnPointer.localOperation()
+                            .id(0)
+                            .ordinal(3),
+                    InsnPointer.fieldSet()
+                            .owner(node.name)
+                            .name("part")
+            );
+            transmuteInsn(
+                    node,
+                    "setAngles",
+                    InsnPointer.fieldGet()
+                            .owner(node.name)
+                            .name("part"),
+                    field -> {
+                        field.owner = "net/minecraft/client/model/Model";
                     }
             );
         });

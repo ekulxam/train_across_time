@@ -2,20 +2,28 @@ package survivalblock.train_across_time.common.util.ptr;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
+import survivalblock.train_across_time.common.TATConstants;
 
-@SuppressWarnings("RedundantIfStatement")
 public final class VarInsnPointer extends InsnPointer<VarInsnNode, VarInsnPointer> {
     private int opcode = -1;
-    private int var = -1;
+    private int id = -1;
 
     VarInsnPointer() {
         super(AbstractInsnNode.VAR_INSN);
-        predicate = n -> {
+        predicate = (self, n) -> {
             if (opcode != -1 && n.getOpcode() != opcode) {
+                if (self.debug) {
+                    TATConstants.PLATFORM.info("\t\tExpected opcode " + opcode + " but got " + n.getOpcode());
+                }
+
                 return false;
             }
 
-            if (var != -1 && n.var != var) {
+            if (id != -1 && n.var != id) {
+                if (self.debug) {
+                    TATConstants.PLATFORM.info("\t\tExpected id " + id + " but got " + n.var);
+                }
+
                 return false;
             }
 
@@ -28,8 +36,8 @@ public final class VarInsnPointer extends InsnPointer<VarInsnNode, VarInsnPointe
         return self();
     }
 
-    public VarInsnPointer var(int var) {
-        this.var = var;
+    public VarInsnPointer id(int id) {
+        this.id = id;
         return self();
     }
 
@@ -39,7 +47,7 @@ public final class VarInsnPointer extends InsnPointer<VarInsnNode, VarInsnPointe
                 "Var",
                 ordinal == -1 ? null : "ordinal=" + ordinal,
                 opcode == -1 ? null : "opcode=" + opcode,
-                var == -1 ? null : "var=" + var
+                id == -1 ? null : "id=" + id
         );
     }
 }

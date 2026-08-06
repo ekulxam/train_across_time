@@ -36,6 +36,7 @@ public class WatheRemapper extends Remapper {
 
         internalName = switch (internalName) {
             case "net/minecraft/resources/ResourceLocation" -> "net/minecraft/resources/Identifier";
+            case "net/minecraft/client/resources/model/ModelResourceLocation" -> "net/minecraft/client/model/geom/ModelLayerLocation";
             case "net/minecraft/world/InteractionResultHolder", "net/minecraft/world/ItemInteractionResult" -> "net/minecraft/world/InteractionResult";
             case "net/minecraft/world/level/block/state/properties/DirectionProperty" -> "net/minecraft/world/level/block/state/properties/EnumProperty";
             case "net/minecraft/Util" -> "net/minecraft/util/Util";
@@ -43,6 +44,7 @@ public class WatheRemapper extends Remapper {
             case "net/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier" -> "net/fabricmc/fabric/api/object/builder/v1/block/entity/FabricBlockEntityTypeBuilder$Factory";
             case "net/minecraft/world/entity/projectile/ThrowableItemProjectile" -> "net/minecraft/world/entity/projectile/throwableitemprojectile/ThrowableItemProjectile";
             case "net/minecraft/client/particle/TextureSheetParticle" -> "net/minecraft/client/particle/SingleQuadParticle";
+            case "net/minecraft/client/model/HierarchicalModel" -> "net/minecraft/client/model/EntityModel";
 
             case "org/ladysnake/cca/api/v3/world/WorldComponentInitializer" -> "org/ladysnake/cca/api/v3/level/LevelComponentInitializer";
             case "org/ladysnake/cca/api/v3/world/WorldComponentFactoryRegistry" -> "org/ladysnake/cca/api/v3/level/LevelComponentFactoryRegistry";

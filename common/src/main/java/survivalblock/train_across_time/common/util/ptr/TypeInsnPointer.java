@@ -3,13 +3,24 @@ package survivalblock.train_across_time.common.util.ptr;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldInsnNode;
+import survivalblock.train_across_time.common.TATConstants;
 
 public final class TypeInsnPointer extends InsnPointer<FieldInsnNode, TypeInsnPointer> {
     private String desc;
 
     TypeInsnPointer() {
         super(AbstractInsnNode.TYPE_INSN);
-        predicate = n -> desc == null || n.desc.equals(desc);
+        predicate = (self, n) -> {
+            if (desc != null && !n.desc.equals(desc)) {
+                if (self.debug) {
+                    TATConstants.PLATFORM.info("\t\tExpected desc " + desc + " but desc " + n.desc);
+                }
+
+                return false;
+            }
+
+            return true;
+        };
     }
 
     public TypeInsnPointer desc(String desc) {
