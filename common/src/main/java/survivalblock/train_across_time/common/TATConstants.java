@@ -87,6 +87,8 @@ public interface TATConstants {
 
         void info(String s);
 
+        void warn(String s);
+
         void error(String s, Throwable t);
     }
 }

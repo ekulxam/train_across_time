@@ -115,6 +115,11 @@ public class WatheTransformer {
 
                 if (b != null) {
                     var path = debugPath.resolve(className + ".class");
+
+                    if (path.toFile().exists()) {
+                        TATConstants.PLATFORM.warn("Transformed " + className + " more than once");
+                    }
+
                     var folder = path.getParent().toFile();
 
                     if (folder.mkdirs() || folder.exists()) {

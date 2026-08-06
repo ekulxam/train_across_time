@@ -32,9 +32,8 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.ProtectionDomain;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Typho
@@ -42,9 +41,17 @@ import java.util.Comparator;
 @SuppressWarnings("unused")
 public class TATLanguageAdapter implements LanguageAdapter {
     public static final WatheTransformer TRANSFORMER = new WatheTransformer();
+    public static Set<String> TRANSFORMED = ConcurrentHashMap.newKeySet();
 
     static {
         TATConstants.PLATFORM.info("Committing sins");
+
+        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                // add a breakpoint here if this is needed, it runs but doesn't actually print
+                System.out.println("[Train Across Time] Transformed " + TRANSFORMED.size() + " classes");
+            }));
+        }
 
         if (TRANSFORMER.debugPath != null) {
             try {
@@ -235,14 +242,18 @@ public class TATLanguageAdapter implements LanguageAdapter {
     }
 
     public static boolean couldTransformClass(String name) {
-        if (name.contains("LimitedHandledScreen")) {
-            TATConstants.PLATFORM.info(name);
-        }
-
         return TATConstants.shouldTransformClass(name.replace('.', '/'));
     }
 
     public static ClassNode transformStatic(ClassNode oldNode, boolean debug) {
+        if (!couldTransformClass(oldNode.name)) {
+            return oldNode;
+        }
+
+        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+            TRANSFORMED.add(oldNode.name);
+        }
+
         var transformed = TRANSFORMER.transform(Opcodes.ASM9, true, oldNode::accept);
 
         if (transformed != null) {

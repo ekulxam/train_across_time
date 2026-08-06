@@ -30,6 +30,7 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
         var inFile = getInput().get().getAsFile();
         var outFile = outputs.file(inFile.getName().substring(0, inFile.getName().lastIndexOf('.')) + "-tat-tweaked.jar");
         var modified = false;
+        var numClasses = 0;
 
         try (JarFile jar = new JarFile(inFile, false)) {
             try (JarOutputStream out = new JarOutputStream(new FileOutputStream(outFile))) {
@@ -48,6 +49,8 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
                         var entryName = entry.getName();
 
                         if (entry.getName().endsWith(".class")) {
+                            numClasses++;
+
                             var transformed = TRANSFORMER.transform(Opcodes.ASM9, false, visitor -> {
                                 new ClassReader(bytes).accept(visitor, 0);
                             });
@@ -60,7 +63,6 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
                                 } else {
                                     if (!modified) {
                                         modified = true;
-                                        TATConstants.PLATFORM.info("Transforming jar " + inFile);
                                     }
 
                                     entryName = transformed.node().name + ".class";
@@ -76,6 +78,10 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+
+        if (modified) {
+            TATConstants.PLATFORM.info("Transformed jar " + inFile + " has " + numClasses + " class files");
         }
     }
 

@@ -27,6 +27,11 @@ public class PlatformImpl implements TATConstants.Platform {
     }
 
     @Override
+    public void warn(String s) {
+        Log.warn(LOGGER, s);
+    }
+
+    @Override
     public void error(String s, Throwable throwable) {
         Log.error(LOGGER, s, throwable);
     }

@@ -22,6 +22,11 @@ public class PlatformImpl implements TATConstants.Platform {
     }
 
     @Override
+    public void warn(String s) {
+        System.out.println("[Train Across Time] " + s);
+    }
+
+    @Override
     public void error(String s, Throwable t) {
         System.err.println("[Train Across Time] " + s);
         t.printStackTrace(System.err);
