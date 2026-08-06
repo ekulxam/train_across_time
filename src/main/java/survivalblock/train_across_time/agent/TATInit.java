@@ -20,15 +20,22 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.FormattedException;
+import net.fabricmc.loader.impl.ModContainerImpl;
+import net.fabricmc.loader.impl.discovery.*;
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.metadata.DependencyOverrides;
+import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import survivalblock.train_across_time.common.TATConstants;
 import survivalblock.train_across_time.common.WatheTransformer;
-import survivalblock.train_across_time.common.remap.*;
 
 import java.io.*;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.ProtectionDomain;
@@ -38,13 +45,68 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Typho
  */
-@SuppressWarnings("unused")
-public class TATLanguageAdapter implements LanguageAdapter {
+@SuppressWarnings({"unused", "unchecked"})
+public class TATInit implements LanguageAdapter {
     public static final WatheTransformer TRANSFORMER = new WatheTransformer();
     public static Set<String> TRANSFORMED = ConcurrentHashMap.newKeySet();
+    public static ModContainerImpl WATHE, RATATOUILLE;
 
     static {
         TATConstants.PLATFORM.info("Committing sins");
+
+        ModDiscoverer discoverer = new ModDiscoverer(new VersionOverrides(), new DependencyOverrides(FabricLoader.getInstance().getConfigDir()));
+        discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
+        discoverer.addCandidateFinder(new DirectoryModCandidateFinder(FabricLoaderImpl.INSTANCE.getModsDirectory().toPath(), FabricLoader.getInstance().isDevelopmentEnvironment()));
+        discoverer.addCandidateFinder(new ArgumentModCandidateFinder(FabricLoader.getInstance().isDevelopmentEnvironment()));
+
+        try {
+            var candidates = discoverer.discoverMods(FabricLoaderImpl.INSTANCE, new HashMap<>());
+            var wathe = candidates.stream()
+                    .filter(c -> c.getMetadata().getId().equals(TATConstants.WATHE))
+                    .findAny();
+
+            if (wathe.isEmpty()) {
+                throw new ModResolutionException("Train Across Time requires Wathe (with the exact version " + TATConstants.WATHE_VERSION + ") to be installed. You can find it at https://modrinth.com/mod/wathe/version/" + TATConstants.WATHE_VERSION);
+            }
+
+            if (!wathe.get().getVersion().getFriendlyString().equals(TATConstants.WATHE_VERSION)) {
+                throw new ModResolutionException("Wathe is the wrong version that is required for Train Across Time (expected " + TATConstants.WATHE_VERSION + ", got " + wathe.get().getVersion().getFriendlyString() + "). Make sure both Train Across Time and Wathe are using their latest released versions.");
+            }
+
+            WATHE = new ModContainerImpl(wathe.get());
+
+            var ratatouille = candidates.stream()
+                    .filter(c -> c.getMetadata().getId().equals(TATConstants.RATATOUILLE))
+                    .findAny();
+
+            if (ratatouille.isEmpty()) {
+                throw new ModResolutionException("Train Across Time requires Ratatouille (with the exact version " + TATConstants.RATATOUILLE_VERSION + ") to be installed. You can find it at https://modrinth.com/mod/ratatouille/version/" + TATConstants.RATATOUILLE_VERSION);
+            }
+
+            if (!ratatouille.get().getVersion().getFriendlyString().equals(TATConstants.RATATOUILLE_VERSION)) {
+                throw new ModResolutionException("Ratatouille is the wrong version that is required for Train Across Time (expected " + TATConstants.RATATOUILLE_VERSION + ", got " + wathe.get().getVersion().getFriendlyString() + "). Make sure both Train Across Time and Ratatouille are using their latest released versions.");
+            }
+
+            RATATOUILLE = new ModContainerImpl(ratatouille.get());
+
+            for (Path path : WATHE.getCodeSourcePaths()) {
+                FabricLauncherBase.getLauncher().addToClassPath(path);
+            }
+
+            for (Path path : RATATOUILLE.getCodeSourcePaths()) {
+                FabricLauncherBase.getLauncher().addToClassPath(path);
+            }
+        } catch (ModResolutionException e) {
+            var f = FormattedException.ofLocalized("exception.incompatible", e.getMessage());
+
+            try {
+                var method = FabricLauncherBase.class.getDeclaredMethod("handleFormattedException", FormattedException.class);
+                method.setAccessible(true);
+                method.invoke(null, f);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ex) {
+                throw f;
+            }
+        }
 
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -99,7 +161,7 @@ public class TATLanguageAdapter implements LanguageAdapter {
                                                 insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
                                                 insns.add(new MethodInsnNode(
                                                         Opcodes.INVOKESTATIC,
-                                                        "survivalblock/train_across_time/agent/TATLanguageAdapter",
+                                                        "survivalblock/train_across_time/agent/TATInit",
                                                         "couldTransformClass",
                                                         "(Ljava/lang/String;)Z"
                                                 ));
@@ -147,7 +209,7 @@ public class TATLanguageAdapter implements LanguageAdapter {
                                                 insns.add(new VarInsnNode(Opcodes.ALOAD, nodeVar));
                                                 insns.add(new MethodInsnNode(
                                                         Opcodes.INVOKESTATIC,
-                                                        "survivalblock/train_across_time/agent/TATLanguageAdapter",
+                                                        "survivalblock/train_across_time/agent/TATInit",
                                                         "transformUnary",
                                                         "(Lorg/objectweb/asm/tree/ClassNode;)Z"
                                                 ));
@@ -176,7 +238,7 @@ public class TATLanguageAdapter implements LanguageAdapter {
                                             insns.add(new InsnNode(Opcodes.ICONST_0));
                                             insns.add(new MethodInsnNode(
                                                     Opcodes.INVOKESTATIC,
-                                                    "survivalblock/train_across_time/agent/TATLanguageAdapter",
+                                                    "survivalblock/train_across_time/agent/TATInit",
                                                     "transformStatic",
                                                     "(Lorg/objectweb/asm/tree/ClassNode;Z)Lorg/objectweb/asm/tree/ClassNode;"
                                             ));
@@ -199,7 +261,7 @@ public class TATLanguageAdapter implements LanguageAdapter {
                                             insns.add(new InsnNode(Opcodes.ICONST_1));
                                             insns.add(new MethodInsnNode(
                                                     Opcodes.INVOKESTATIC,
-                                                    "survivalblock/train_across_time/agent/TATLanguageAdapter",
+                                                    "survivalblock/train_across_time/agent/TATInit",
                                                     "transformStatic",
                                                     "(Lorg/objectweb/asm/tree/ClassNode;Z)Lorg/objectweb/asm/tree/ClassNode;"
                                             ));
@@ -309,18 +371,21 @@ public class TATLanguageAdapter implements LanguageAdapter {
 
     public static void nukeAW(String modId) {
         ModContainer container = FabricLoader.getInstance().getModContainer(modId).orElseThrow();
-        ModMetadata metadata = container.getMetadata();
-        TATConstants.PLATFORM.info(modId + " metadata is an instance of " + metadata.getClass());
 
-        try {
-            Field classTweaker = metadata.getClass().getDeclaredField("classTweaker");
-            classTweaker.setAccessible(true);
-            classTweaker.set(metadata, null);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+        if (container.getMetadata().getId().equals(modId)) {
+            ModMetadata metadata = container.getMetadata();
+            TATConstants.PLATFORM.info(modId + " metadata is an instance of " + metadata.getClass());
+
+            try {
+                Field classTweaker = metadata.getClass().getDeclaredField("classTweaker");
+                classTweaker.setAccessible(true);
+                classTweaker.set(metadata, null);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+            TATConstants.PLATFORM.info("Successfully nuked access widener of mod " + modId);
         }
-
-        TATConstants.PLATFORM.info("Successfully nuked access widener of mod " + modId);
     }
 
     @Override

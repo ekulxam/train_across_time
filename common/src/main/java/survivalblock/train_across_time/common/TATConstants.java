@@ -36,9 +36,11 @@ public interface TATConstants {
     String MIXIN_INFO_CLASS = "org/spongepowered/asm/mixin/transformer/MixinInfo";
 
     String WATHE = "wathe";
+    String WATHE_VERSION = "1.3.2-1.21.1";
     String WATHE_PACKAGE = "dev/doctor4t/wathe";
 
     String RATATOUILLE = "ratatouille";
+    String RATATOUILLE_VERSION = "1.4.3-1.21.1";
     String RATATOUILLE_PACKAGE = "dev/doctor4t/ratatouille";
 
     Platform PLATFORM = ServiceLoader.load(Platform.class).findFirst().orElseThrow();

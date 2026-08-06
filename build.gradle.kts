@@ -1,3 +1,5 @@
+import survivalblock.train_across_time.common.TATConstants
+
 plugins {
     id("java")
 
@@ -89,10 +91,10 @@ dependencies {
 
     // TODO: versioned deps
 
-    modstitchModImplementation("dev.doctor4t:wathe:1.3.2-1.21.1") {
+    modstitchModCompileOnly("dev.doctor4t:wathe:${TATConstants.WATHE_VERSION}") {
         isTransitive = false
     }
-    modstitchModImplementation("dev.doctor4t:ratatouille:1.4.3-1.21.1") {
+    modstitchModCompileOnly("dev.doctor4t:ratatouille:${TATConstants.RATATOUILLE_VERSION}") {
         isTransitive = false
     }
 
