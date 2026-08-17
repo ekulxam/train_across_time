@@ -1,6 +1,7 @@
 package survivalblock.train_across_time.plugin;
 
 import groovyjarjarasm.asm.Opcodes;
+import net.typho.asm_util.ClassTransformInfo;
 import org.gradle.api.artifacts.transform.*;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
@@ -45,33 +46,28 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
 
                     try (InputStream in = jar.getInputStream(entry)) {
                         var bytes = in.readAllBytes();
-                        var newBytes = bytes;
                         var entryName = entry.getName();
 
                         if (entry.getName().endsWith(".class")) {
                             numClasses++;
 
-                            var transformed = TRANSFORMER.transform(Opcodes.ASM9, false, visitor -> {
-                                new ClassReader(bytes).accept(visitor, 0);
-                            });
+                            var info = new ClassTransformInfo.AgentTransform(bytes);
 
-                            if (transformed != null) {
-                                newBytes = transformed.toByteArray();
+                            TRANSFORMER.transform(Opcodes.ASM9, false, null, info);
 
-                                if (newBytes == null) {
-                                    newBytes = bytes;
-                                } else {
-                                    if (!modified) {
-                                        modified = true;
-                                    }
+                            var transformedBytes = info.compile();
 
-                                    entryName = transformed.node().name + ".class";
+                            if (transformedBytes != null) {
+                                if (!modified) {
+                                    modified = true;
                                 }
+
+                                bytes = transformedBytes;
                             }
                         }
 
                         out.putNextEntry(new JarEntry(entryName));
-                        out.write(newBytes);
+                        out.write(bytes);
                         out.closeEntry();
                     }
                 }

@@ -1,14 +1,11 @@
-package survivalblock.train_across_time.common.remap;
+package survivalblock.train_across_time.common;
 
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
+import net.typho.asm_util.ClassTransformInfo;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.commons.Remapper;
-import survivalblock.train_across_time.common.TATConstants;
-import survivalblock.train_across_time.common.WatheTransformer;
-import survivalblock.train_across_time.common.util.UsedMappingsOutput;
-import survivalblock.train_across_time.common.util.WatheClassOutputInfo;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -35,7 +32,7 @@ public abstract class WatheMappingsCache {
     public final Map<String, String> methods = new HashMap<>();
     public final Map<String, String> fields = new HashMap<>();
 
-    public Remapper createRemapper(int api, WatheClassOutputInfo info, boolean errorIfUnmapped) {
+    public Remapper createRemapper(int api, ClassTransformInfo info, UsedMappingsOutput usedMappingsOutput, boolean errorIfUnmapped) {
         return new Remapper(api) {
             @Override
             public String map(String internalName) {
@@ -48,7 +45,7 @@ public abstract class WatheMappingsCache {
                         }
                     } else {
                         info.markChanged();
-                        info.usedMappingsOutput.useClass(internalName);
+                        usedMappingsOutput.useClass(internalName);
                         return newName;
                     }
                 }
@@ -67,7 +64,7 @@ public abstract class WatheMappingsCache {
                         }
                     } else {
                         info.markChanged();
-                        info.usedMappingsOutput.useMethod(name);
+                        usedMappingsOutput.useMethod(name);
                         return newName;
                     }
                 }
@@ -86,7 +83,7 @@ public abstract class WatheMappingsCache {
                         }
                     } else {
                         info.markChanged();
-                        info.usedMappingsOutput.useField(name);
+                        usedMappingsOutput.useField(name);
                         return newName;
                     }
                 }

@@ -19,63 +19,14 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "survivalblock.train_across_time.TrainAcrossTime",
-      "dev.doctor4t.wathe.Wathe",
-      "dev.doctor4t.ratatouille.Ratatouille"
-    ],
-    "client": [
-      "dev.doctor4t.wathe.client.WatheClient",
-      "dev.doctor4t.ratatouille.client.RatatouilleClient"
-    ],
-    "fabric-datagen": [
-      "dev.doctor4t.wathe.datagen.WatheDatagen",
-      "dev.doctor4t.ratatouille.datagen.RatatouilleDatagen"
-    ],
-    "cardinal-components": [
-      "dev.doctor4t.wathe.cca.WatheComponents"
-    ],
-    "voicechat": [
-      "dev.doctor4t.wathe.compat.TrainVoicePlugin"
-    ],
-    "mass-asm": [
-      "survivalblock.train_across_time.TATMassAsm"
+      "survivalblock.train_across_time.TrainAcrossTime"
     ]
   },
   "mixins": [
-    "train_across_time.mixins.json",
-    "wathe.mixins.json",
-    "ratatouille.mixins.json"
+    "train_across_time.mixins.json"
   ],
   "depends": {
     "minecraft": "~26.1",
-    "fabric-language-kotlin": "*"
-  },
-  "provides": [
-    "wathe",
-    "ratatouille"
-  ],
-  "languageAdapters": {
-    "train_across_time": "survivalblock.train_across_time.agent.TATInit"
-  },
-  "custom": {
-    "cardinal-components": [
-      "wathe:train",
-      "wathe:game",
-      "wathe:mapvariables",
-      "wathe:blackout",
-      "wathe:time",
-      "wathe:autostart",
-      "wathe:roundend",
-      "wathe:role",
-      "wathe:mood",
-      "wathe:shop",
-      "wathe:poison",
-      "wathe:psycho",
-      "wathe:rolecounter",
-      "wathe:note"
-    ],
-    "loom:injected_interfaces": {
-      "net/minecraft/world/level/block/state/BlockBehaviour$Properties" : ["dev/doctor4t/wathe/util/BlockSettingsAdditions"]
-    }
+    "wathe": "1.3.2-1.21.1"
   }
 }

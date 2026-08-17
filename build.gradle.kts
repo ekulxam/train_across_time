@@ -44,10 +44,22 @@ modstitch {
         configureLoom {
             runs.configureEach {
                 vmArg("-Dfabric.debug.disableClassPathIsolation=true")
-                vmArg("-Dtrain_across_time:mappings_output_file=${rootProject.file("src/main/resources/mappings.bin").absolutePath}")
+                vmArg("-Dtrain_across_time.mappings_output_file=${rootProject.file("src/main/resources/mappings.bin").absolutePath}")
+                vmArg("-Dtrain_across_time.debug_output=true")
+                vmArg("-javaagent:${finalJarTask.get().archiveFile.get().asFile.absolutePath}")
                 ideConfigGenerated(true)
             }
             enableTransitiveAccessWideners = false
+        }
+    }
+
+    finalJarTask {
+        manifest {
+            attributes(
+                "Premain-Class" to "survivalblock.train_across_time.agent.TATAgent",
+                "Can-Redefine-Classes" to "true",
+                "Can-Retransform-Classes" to "true"
+            )
         }
     }
 
@@ -97,16 +109,8 @@ repositories {
 
 dependencies {
     modstitchModImplementation("net.fabricmc.fabric-api:fabric-api:0.155.2+26.1.2")
-    modstitchModImplementation("maven.modrinth:fabric-language-kotlin:1.13.13+kotlin.2.4.10") // for asm util
 
     // TODO: versioned deps
-
-    modstitchModCompileOnly("dev.doctor4t:wathe:${TATConstants.WATHE_VERSION}") {
-        isTransitive = false
-    }
-    modstitchModCompileOnly("dev.doctor4t:ratatouille:${TATConstants.RATATOUILLE_VERSION}") {
-        isTransitive = false
-    }
 
     modstitchModRuntimeOnly("dev.upcraft.datasync:datasync-minecraft-26.1-fabric:0.11.0")
 
@@ -125,12 +129,16 @@ dependencies {
     modstitchModCompileOnly("maven.modrinth:sodium:mc26.1.2-0.9.2-alpha.3-fabric")
     modstitchModCompileOnly("maven.modrinth:iris:1.11.2+26.1-fabric")
 
-    //include(implementation("com.github.cputnam-a11y:MassAsmer:c1a863f7e6")!!)
+    implementation(modstitchJiJ("net.fabricmc:tiny-remapper:0.14.0")!!)
+    implementation(modstitchJiJ("net.typho:asm_util:1.0.18")!!)
+    implementation(modstitchJiJ("org.jetbrains.kotlin:kotlin-stdlib:2.3.21")!!)
+    implementation(modstitchJiJ(project(":common"))!!)
+}
 
-    implementation("net.fabricmc:tiny-remapper:0.14.0")
-    implementation("net.typho:asm_util:1.0.3")
-    implementation(project(":common")) // TODO JiJ
+tasks.named("runClient") {
+    dependsOn(tasks.build)
+}
 
-    // if needed
-    //include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.3")))
+tasks.named("runServer") {
+    dependsOn(tasks.build)
 }

@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package survivalblock.train_across_time.common.remap;
+package survivalblock.train_across_time.common;
 
+import net.typho.asm_util.ClassTransformInfo;
 import org.objectweb.asm.commons.Remapper;
-import survivalblock.train_across_time.common.util.WatheClassOutputInfo;
 
 /**
  * @author Typho
  */
 @SuppressWarnings({"SwitchStatementWithTooFewBranches"})
 public class WatheRemapper extends Remapper {
-    public final WatheClassOutputInfo info;
+    public final ClassTransformInfo info;
 
-    public WatheRemapper(int api, WatheClassOutputInfo info) {
+    public WatheRemapper(int api, ClassTransformInfo info) {
         super(api);
         this.info = info;
     }
@@ -65,7 +65,7 @@ public class WatheRemapper extends Remapper {
             default -> internalName;
         };
 
-        internalName = switch (info.className) {
+        internalName = switch (info.getNode().name) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (internalName) {
                 case "net/minecraft/world/item/Tiers" -> "net/minecraft/world/item/ToolMaterial";
 
@@ -120,7 +120,7 @@ public class WatheRemapper extends Remapper {
         };
 
         // TODO
-        name = switch (info.className) {
+        name = switch (info.getNode().name) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (name) {
                 case "attributes" -> "axe";
 
@@ -149,7 +149,7 @@ public class WatheRemapper extends Remapper {
         methodDescriptor = super.mapMethodDesc(methodDescriptor);
 
         // TODO
-        methodDescriptor = switch (info.className) {
+        methodDescriptor = switch (info.getNode().name) {
             case "dev/doctor4t/wathe/index/WatheItems" -> switch (methodDescriptor) {
                 case "(Lnet/minecraft/world/item/component/ItemAttributeModifiers;)Lnet/minecraft/world/item/Item$Properties;" -> "(Lnet/minecraft/world/item/ToolMaterial;FF)Lnet/minecraft/world/item/Item$Properties;";
 

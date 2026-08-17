@@ -1,0 +1,3 @@
+Premain-Class: survivalblock.train_across_time.agent.TATAgent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true

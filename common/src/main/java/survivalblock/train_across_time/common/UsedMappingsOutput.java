@@ -1,4 +1,4 @@
-package survivalblock.train_across_time.common.util;
+package survivalblock.train_across_time.common;
 
 public interface UsedMappingsOutput {
     UsedMappingsOutput NONE = new UsedMappingsOutput() {
@@ -21,6 +21,6 @@ public interface UsedMappingsOutput {
 
     void useField(String intermediary);
 
-    default void endClass() {
+    default void save() {
     }
 }

@@ -1,17 +1,9 @@
 package survivalblock.train_across_time.common;
 
-import net.typho.asm_util.ClassNameVisitor;
-import net.typho.asm_util.error.EndVisitException;
-import net.typho.asm_util.remap.MixinClassRemapper;
+import net.typho.asm_util.ClassTransformInfo;
+import net.typho.asm_util.remap.CompatClassRemapper;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
-import survivalblock.train_across_time.common.patch.WatheClassPatches;
-import survivalblock.train_across_time.common.remap.WatheMappingsCache;
-import survivalblock.train_across_time.common.remap.WatheRemapper;
-import survivalblock.train_across_time.common.util.TransformedClass;
-import survivalblock.train_across_time.common.util.UsedMappingsOutput;
-import survivalblock.train_across_time.common.util.WatheClassOutputInfo;
 
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
@@ -20,7 +12,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -32,7 +23,7 @@ public class WatheTransformer {
     public WatheMappingsCache mappingsCache = WatheMappingsCache.create();
 
     public WatheTransformer() {
-        var mappingsOutputFile = System.getProperty("train_across_time:mappings_output_file");
+        var mappingsOutputFile = System.getProperty("train_across_time.mappings_output_file");
         usedMappingsOutput = mappingsOutputFile == null ? UsedMappingsOutput.NONE : new UsedMappingsOutput() {
             public final WatheMappingsCache usedMappingsStorage = WatheMappingsCache.createStandalone();
             public final Path outputFile = Paths.get(mappingsOutputFile);
@@ -53,7 +44,7 @@ public class WatheTransformer {
             }
 
             @Override
-            public void endClass() {
+            public void save() {
                 try (OutputStream out = Files.newOutputStream(this.outputFile)) {
                     this.usedMappingsStorage.save(new DataOutputStream(out));
                 } catch (IOException e) {
@@ -64,49 +55,42 @@ public class WatheTransformer {
         mappingsCache.reload(this);
     }
 
-    public @Nullable TransformedClass transform(
+    public void transform(
             int api,
             boolean errorIfUnmapped,
-            Consumer<ClassVisitor> visitor
+            String className,
+            ClassTransformInfo info
     ) {
-        var info = new WatheClassOutputInfo(usedMappingsOutput);
+        if (className == null) {
+            className = info.getNode().name;
+        }
+
+        if (!TATConstants.shouldTransformClass(className)) {
+            return;
+        }
 
         try {
             var node = new ClassNode();
-            visitor.accept(
-                    new ClassNameVisitor(
-                            api,
-                            new MixinClassRemapper(
-                                    new MixinClassRemapper(
-                                            node,
-                                            new WatheRemapper(api, info)
-                                    ),
-                                    mappingsCache.createRemapper(api, info, errorIfUnmapped)
+            info.getNode().accept(
+                    new CompatClassRemapper(
+                            new CompatClassRemapper(
+                                    node,
+                                    new WatheRemapper(api, info)
                             ),
-                            name -> {
-                                info.className = name;
-
-                                if (!TATConstants.shouldTransformClass(name)) {
-                                    throw new EndVisitException();
-                                }
-                            }
+                            mappingsCache.createRemapper(api, info, usedMappingsOutput, errorIfUnmapped)
                     )
             );
+            info.setNode(node);
 
-            var patch = WatheClassPatches.PATCHES.get(info.className);
+            var patch = WatheClassPatches.PATCHES.get(className);
 
             if (patch != null) {
                 info.markChanged();
-                patch.accept(node, info);
+                patch.accept(info);
             }
-
-            return new TransformedClass(node, info);
-        } catch (EndVisitException ignored) {
         } catch (Throwable t) {
-            TATConstants.PLATFORM.error("Error while processing class " + info.className, t);
+            TATConstants.PLATFORM.error("Error while processing class " + className, t);
         }
-
-        return null;
     }
 
     public void debugSaveClass(
