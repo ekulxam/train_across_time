@@ -24,12 +24,14 @@ import java.nio.file.Paths;
 public class PlatformImpl implements TATConstants.Platform {
     @Override
     public @Nullable Path debugOutputPath() {
-        return TATAgent.IS_DEV ? Paths.get(".wathe_port_debug").toAbsolutePath() : null;
+        var path = System.getProperty("train_across_time.debug_output_path");
+
+        return path == null ? null : Paths.get(path);
     }
 
     @Override
     public boolean compileMappings() {
-        return TATAgent.IS_DEV;
+        return System.getProperty("train_across_time.mappings_output_file") != null;
     }
 
     @Override

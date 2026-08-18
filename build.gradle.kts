@@ -1,5 +1,3 @@
-import survivalblock.train_across_time.common.TATConstants
-
 plugins {
     id("java")
 
@@ -45,7 +43,7 @@ modstitch {
             runs.configureEach {
                 vmArg("-Dfabric.debug.disableClassPathIsolation=true")
                 vmArg("-Dtrain_across_time.mappings_output_file=${rootProject.file("src/main/resources/mappings.bin").absolutePath}")
-                vmArg("-Dtrain_across_time.is_dev=true")
+                vmArg("-Dtrain_across_time.debug_output_path=${project.file(runDir).resolve(".train_debug").absolutePath}")
                 vmArg("-javaagent:${finalJarTask.get().archiveFile.get().asFile.absolutePath}")
                 ideConfigGenerated(true)
             }
@@ -112,8 +110,12 @@ dependencies {
 
     // TODO: versioned deps
 
-    modstitchModRuntimeOnly("dev.doctor4t:wathe:1.3.2-1.21.1")
-    modstitchModRuntimeOnly("dev.doctor4t:ratatouille:1.4.3-1.21.1")
+    modstitchModRuntimeOnly("dev.doctor4t:wathe:1.3.2-1.21.1") {
+        isTransitive = false
+    }
+    modstitchModRuntimeOnly("dev.doctor4t:ratatouille:1.4.3-1.21.1") {
+        isTransitive = false
+    }
 
     modstitchModRuntimeOnly("dev.upcraft.datasync:datasync-minecraft-26.1-fabric:0.11.0")
 

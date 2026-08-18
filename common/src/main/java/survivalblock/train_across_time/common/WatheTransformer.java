@@ -58,14 +58,9 @@ public class WatheTransformer {
     public void transform(
             int api,
             boolean errorIfUnmapped,
-            String className,
             ClassTransformInfo info
     ) {
-        if (className == null) {
-            className = info.getNode().name;
-        }
-
-        if (!TATConstants.shouldTransformClass(className)) {
+        if (!TATConstants.shouldTransformClass(info.getNode().name)) {
             return;
         }
 
@@ -82,14 +77,14 @@ public class WatheTransformer {
             );
             info.setNode(node);
 
-            var patch = WatheClassPatches.PATCHES.get(className);
+            var patch = WatheClassPatches.PATCHES.get(info.getNode().name);
 
             if (patch != null) {
                 info.markChanged();
                 patch.accept(info);
             }
         } catch (Throwable t) {
-            TATConstants.PLATFORM.error("Error while processing class " + className, t);
+            TATConstants.PLATFORM.error("Error while processing class " + info.getNode().name, t);
         }
     }
 
@@ -97,7 +92,6 @@ public class WatheTransformer {
             String className,
             Supplier<byte @Nullable []> bytes
     ) {
-        System.out.println(debugPath);
         try {
             if (debugPath != null) {
                 var b = bytes.get();

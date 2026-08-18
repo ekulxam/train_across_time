@@ -33,7 +33,6 @@ public interface TATConstants {
     String V0_METADATA_PARSER_CLASS = "net/fabricmc/loader/impl/metadata/V0ModMetadataParser";
     String V1_METADATA_CLASS = "net/fabricmc/loader/impl/metadata/V1ModMetadata";
     String V1_METADATA_PARSER_CLASS = "net/fabricmc/loader/impl/metadata/V1ModMetadataParser";
-    String MOD_SCAN_TASK_CLASS = "net/fabricmc/loader/impl/discovery/ModDiscoverer$ModScanTask";
     String MIXIN_PROCESSOR_CLASS = "org/spongepowered/asm/mixin/transformer/MixinProcessor";
     String CLASS_INFO_CLASS = "org/spongepowered/asm/mixin/transformer/ClassInfo";
     String MIXIN_INFO_CLASS = "org/spongepowered/asm/mixin/transformer/MixinInfo";
@@ -58,7 +57,6 @@ public interface TATConstants {
     List<Predicate<String>> EARLY_TRANSFORM_PREDICATES = new ArrayList<>(List.of(
             cls -> cls.equals(V0_METADATA_PARSER_CLASS),
             cls -> cls.equals(V1_METADATA_PARSER_CLASS),
-            cls -> cls.equals(MOD_SCAN_TASK_CLASS),
             cls -> cls.equals(MIXIN_PROCESSOR_CLASS),
             cls -> cls.equals(CLASS_INFO_CLASS),
             cls -> cls.equals(MIXIN_INFO_CLASS)

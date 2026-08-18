@@ -53,7 +53,7 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
 
                             var info = new ClassTransformInfo.AgentTransform(bytes);
 
-                            TRANSFORMER.transform(Opcodes.ASM9, false, null, info);
+                            TRANSFORMER.transform(Opcodes.ASM9, false, info);
 
                             var transformedBytes = info.compile();
 
