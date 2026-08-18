@@ -45,7 +45,7 @@ modstitch {
             runs.configureEach {
                 vmArg("-Dfabric.debug.disableClassPathIsolation=true")
                 vmArg("-Dtrain_across_time.mappings_output_file=${rootProject.file("src/main/resources/mappings.bin").absolutePath}")
-                vmArg("-Dtrain_across_time.debug_output=true")
+                vmArg("-Dtrain_across_time.is_dev=true")
                 vmArg("-javaagent:${finalJarTask.get().archiveFile.get().asFile.absolutePath}")
                 ideConfigGenerated(true)
             }
@@ -112,6 +112,9 @@ dependencies {
 
     // TODO: versioned deps
 
+    modstitchModRuntimeOnly("dev.doctor4t:wathe:1.3.2-1.21.1")
+    modstitchModRuntimeOnly("dev.doctor4t:ratatouille:1.4.3-1.21.1")
+
     modstitchModRuntimeOnly("dev.upcraft.datasync:datasync-minecraft-26.1-fabric:0.11.0")
 
     modstitchModRuntimeOnly("com.terraformersmc:modmenu:18.0.0")
@@ -130,7 +133,7 @@ dependencies {
     modstitchModCompileOnly("maven.modrinth:iris:1.11.2+26.1-fabric")
 
     implementation(modstitchJiJ("net.fabricmc:tiny-remapper:0.14.0")!!)
-    implementation(modstitchJiJ("net.typho:asm_util:1.0.18")!!)
+    implementation(modstitchJiJ("net.typho:asm_util:1.0.19")!!)
     implementation(modstitchJiJ("org.jetbrains.kotlin:kotlin-stdlib:2.3.21")!!)
     implementation(modstitchJiJ(project(":common"))!!)
 }

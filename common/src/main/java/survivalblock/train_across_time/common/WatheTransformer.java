@@ -97,6 +97,7 @@ public class WatheTransformer {
             String className,
             Supplier<byte @Nullable []> bytes
     ) {
+        System.out.println(debugPath);
         try {
             if (debugPath != null) {
                 var b = bytes.get();

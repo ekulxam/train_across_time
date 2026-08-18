@@ -19,9 +19,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -31,6 +29,11 @@ import java.util.function.Predicate;
 public interface TATConstants {
     String MOD_ID = "train_across_time";
 
+    String V0_METADATA_CLASS = "net/fabricmc/loader/impl/metadata/V0ModMetadata";
+    String V0_METADATA_PARSER_CLASS = "net/fabricmc/loader/impl/metadata/V0ModMetadataParser";
+    String V1_METADATA_CLASS = "net/fabricmc/loader/impl/metadata/V1ModMetadata";
+    String V1_METADATA_PARSER_CLASS = "net/fabricmc/loader/impl/metadata/V1ModMetadataParser";
+    String MOD_SCAN_TASK_CLASS = "net/fabricmc/loader/impl/discovery/ModDiscoverer$ModScanTask";
     String MIXIN_PROCESSOR_CLASS = "org/spongepowered/asm/mixin/transformer/MixinProcessor";
     String CLASS_INFO_CLASS = "org/spongepowered/asm/mixin/transformer/ClassInfo";
     String MIXIN_INFO_CLASS = "org/spongepowered/asm/mixin/transformer/MixinInfo";
@@ -44,11 +47,18 @@ public interface TATConstants {
     String RATATOUILLE_PACKAGE = "dev/doctor4t/ratatouille";
 
     Platform PLATFORM = ServiceLoader.load(Platform.class).findFirst().orElseThrow();
+    Set<String> MODS_TO_TWEAK = new HashSet<>(Set.of(
+            WATHE,
+            RATATOUILLE
+    ));
     List<Predicate<String>> TRANSFORM_PREDICATES = new ArrayList<>(List.of(
             cls -> cls.startsWith(WATHE_PACKAGE),
             cls -> cls.startsWith(RATATOUILLE_PACKAGE)
     ));
-    List<Predicate<String>> MIXIN_TRANSFORM_PREDICATES = new ArrayList<>(List.of(
+    List<Predicate<String>> EARLY_TRANSFORM_PREDICATES = new ArrayList<>(List.of(
+            cls -> cls.equals(V0_METADATA_PARSER_CLASS),
+            cls -> cls.equals(V1_METADATA_PARSER_CLASS),
+            cls -> cls.equals(MOD_SCAN_TASK_CLASS),
             cls -> cls.equals(MIXIN_PROCESSOR_CLASS),
             cls -> cls.equals(CLASS_INFO_CLASS),
             cls -> cls.equals(MIXIN_INFO_CLASS)
@@ -64,8 +74,8 @@ public interface TATConstants {
         return false;
     }
 
-    static boolean shouldTransformMixinClass(String className) {
-        for (Predicate<String> p : MIXIN_TRANSFORM_PREDICATES) {
+    static boolean shouldTransformEarlyClass(String className) {
+        for (Predicate<String> p : EARLY_TRANSFORM_PREDICATES) {
             if (p.test(className)) {
                 return true;
             }
