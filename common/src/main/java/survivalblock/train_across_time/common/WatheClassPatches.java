@@ -469,28 +469,32 @@ public class WatheClassPatches {
         register(Set.of(
                 "dev/doctor4t/ratatouille/index/RatatouilleItems"
         ), info -> {
+            info.computeMaxStacks();
+
             MethodPointer.method()
                     .name("<clinit>")
                     .findOrThrow(info.getNode(), method -> {
                         TATConstants.PLATFORM.info("Injecting item ids into RatatouilleItems");
                         applyItemIds(method, Map.of());
-                        info.computeMaxStacks();
                     });
         });
         register(Set.of(
                 "dev/doctor4t/ratatouille/index/RatatouilleBlocks"
         ), info -> {
+            info.computeMaxStacks();
+
             MethodPointer.method()
                     .name("<clinit>")
                     .findOrThrow(info.getNode(), method -> {
                         TATConstants.PLATFORM.info("Injecting block ids into RatatouilleBlocks");
                         applyBlockIds(method, Map.of());
-                        info.computeMaxStacks();
                     });
         });
         register(Set.of(
                 "dev/doctor4t/wathe/index/WatheItems"
         ), info -> {
+            info.computeMaxStacks();
+
             MethodPointer.method()
                     .name("<clinit>")
                     .findOrThrow(info.getNode(), method -> {
@@ -498,18 +502,113 @@ public class WatheClassPatches {
                         applyItemIds(method, Map.of(
                                 2, "knife"
                         ));
-                        info.computeMaxStacks();
                     });
         });
         register(Set.of(
                 "dev/doctor4t/wathe/index/WatheBlocks"
         ), info -> {
+            info.computeMaxStacks();
+
+            info.getNode().fields.add(
+                    info.getNode().fields.indexOf(FieldPointer.field()
+                            .name("BAMBOO_POLE")
+                            .findOrThrow(info.getNode())),
+                    new FieldNode(
+                            Opcodes.ASM9,
+                            Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL,
+                            "PALE_OAK_BRANCH",
+                            "Lnet/minecraft/world/level/block/Block;",
+                            null,
+                            null
+                    )
+            );
+            info.getNode().fields.add(
+                    info.getNode().fields.indexOf(FieldPointer.field()
+                            .name("STRIPPED_BAMBOO_POLE")
+                            .findOrThrow(info.getNode())),
+                    new FieldNode(
+                            Opcodes.ASM9,
+                            Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL,
+                            "STRIPPED_PALE_OAK_BRANCH",
+                            "Lnet/minecraft/world/level/block/Block;",
+                            null,
+                            null
+                    )
+            );
+
             MethodPointer.method()
                     .name("<clinit>")
-                    .findOrThrow(info.getNode(), method1 -> {
+                    .findOrThrow(info.getNode(), method -> {
                         TATConstants.PLATFORM.info("Injecting block ids into WatheBlocks");
-                        applyBlockIds(method1, Map.of());
-                        info.computeMaxStacks();
+                        applyBlockIds(method, Map.of());
+
+                        InsnPointer.constant("bamboo_pole")
+                                .findOrThrow(method.instructions, insn -> {
+                                    var insns = new InsnList();
+
+                                    insns.add(new LdcInsnNode("pale_oak_branch"));
+                                    insns.add(new FieldInsnNode(
+                                            Opcodes.GETSTATIC,
+                                            "net/minecraft/world/level/block/Blocks",
+                                            "PALE_OAK_WOOD",
+                                            "Lnet/minecraft/world/level/block/Block;"
+                                    ));
+                                    insns.add(new FieldInsnNode(
+                                            Opcodes.GETSTATIC,
+                                            info.getNode().name,
+                                            "registrar",
+                                            "Ldev/doctor4t/ratatouille/util/registrar/BlockRegistrar;"
+                                    ));
+                                    insns.add(new MethodInsnNode(
+                                            Opcodes.INVOKESTATIC,
+                                            info.getNode().name,
+                                            "createBranch",
+                                            "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Ldev/doctor4t/ratatouille/util/registrar/BlockRegistrar;)Lnet/minecraft/world/level/block/Block;",
+                                            true
+                                    ));
+                                    insns.add(new FieldInsnNode(
+                                            Opcodes.PUTSTATIC,
+                                            info.getNode().name,
+                                            "PALE_OAK_BRANCH",
+                                            "Lnet/minecraft/world/level/block/Block;"
+                                    ));
+
+                                    method.instructions.insertBefore(insn, insns);
+                                });
+
+                        InsnPointer.constant("stripped_bamboo_pole")
+                                .findOrThrow(method.instructions, insn -> {
+                                    var insns = new InsnList();
+
+                                    insns.add(new LdcInsnNode("stripped_pale_oak_branch"));
+                                    insns.add(new FieldInsnNode(
+                                            Opcodes.GETSTATIC,
+                                            "net/minecraft/world/level/block/Blocks",
+                                            "STRIPPED_PALE_OAK_WOOD",
+                                            "Lnet/minecraft/world/level/block/Block;"
+                                    ));
+                                    insns.add(new FieldInsnNode(
+                                            Opcodes.GETSTATIC,
+                                            info.getNode().name,
+                                            "registrar",
+                                            "Ldev/doctor4t/ratatouille/util/registrar/BlockRegistrar;"
+                                    ));
+                                    insns.add(new MethodInsnNode(
+                                            Opcodes.INVOKESTATIC,
+                                            info.getNode().name,
+                                            "createBranch",
+                                            "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;Ldev/doctor4t/ratatouille/util/registrar/BlockRegistrar;)Lnet/minecraft/world/level/block/Block;",
+                                            true
+                                    ));
+                                    insns.add(new FieldInsnNode(
+                                            Opcodes.PUTSTATIC,
+                                            info.getNode().name,
+                                            "STRIPPED_PALE_OAK_BRANCH",
+                                            "Lnet/minecraft/world/level/block/Block;"
+                                    ));
+
+                                    method.instructions.insertBefore(insn, insns);
+                                });
                     });
 
             MethodPointer.method()
