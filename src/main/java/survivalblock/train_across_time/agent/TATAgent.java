@@ -69,218 +69,208 @@ public class TATAgent {
             @Override
             public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
                 if (TATConstants.shouldTransformEarlyClass(className)) {
-                    var info = new ClassTransformInfo.AgentTransform(classfileBuffer);
+                    try {
+                        var info = new ClassTransformInfo.AgentTransform(classfileBuffer);
 
-                    switch (className) {
-                        case TATConstants.V0_METADATA_PARSER_CLASS -> {
-                            info.markChanged();
-                            info.computeMaxStacks();
+                        switch (className) {
+                            case TATConstants.V0_METADATA_PARSER_CLASS -> {
+                                info.markChanged();
+                                info.computeMaxStacks();
 
-                            MethodPointer.method()
-                                    .name("parse")
-                                    .findOrThrow(info.getNode(), method -> {
-                                        InsnPointer.type(TATConstants.V0_METADATA_CLASS)
-                                                .lastOrdinal()
-                                                .findOrThrow(method.instructions, insn -> {
-                                                    var insns = new InsnList();
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 4));
-                                                    insns.add(new MethodInsnNode(
-                                                            Opcodes.INVOKESTATIC,
-                                                            "survivalblock/train_across_time/agent/TATAgent",
-                                                            "tweakModDependencies",
-                                                            "(Ljava/lang/String;Ljava/util/List;)V"
-                                                    ));
-                                                    method.instructions.insertBefore(insn, insns);
-                                                });
-                                    });
+                                MethodPointer.method()
+                                        .name("parse")
+                                        .findOrThrow(info.getNode(), method -> {
+                                            InsnPointer.type(TATConstants.V0_METADATA_CLASS)
+                                                    .lastOrdinal()
+                                                    .findOrThrow(method.instructions, insn -> {
+                                                        var insns = new InsnList();
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 4));
+                                                        insns.add(new MethodInsnNode(
+                                                                Opcodes.INVOKESTATIC,
+                                                                "survivalblock/train_across_time/agent/TATAgent",
+                                                                "tweakModDependencies",
+                                                                "(Ljava/lang/String;Ljava/util/List;)V"
+                                                        ));
+                                                        method.instructions.insertBefore(insn, insns);
+                                                    });
+                                        });
+                            }
+                            case TATConstants.V1_METADATA_PARSER_CLASS -> {
+                                info.markChanged();
+                                info.computeMaxStacks();
+
+                                MethodPointer.method()
+                                        .name("parse")
+                                        .findOrThrow(info.getNode(), method -> {
+                                            InsnPointer.type(TATConstants.V1_METADATA_CLASS)
+                                                    .lastOrdinal()
+                                                    .findOrThrow(method.instructions, insn -> {
+                                                        var insns = new InsnList();
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 10));
+                                                        insns.add(new MethodInsnNode(
+                                                                Opcodes.INVOKESTATIC,
+                                                                "survivalblock/train_across_time/agent/TATAgent",
+                                                                "tweakModDependencies",
+                                                                "(Ljava/lang/String;Ljava/util/List;)V"
+                                                        ));
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 7));
+                                                        insns.add(new MethodInsnNode(
+                                                                Opcodes.INVOKESTATIC,
+                                                                "survivalblock/train_across_time/agent/TATAgent",
+                                                                "tweakNestedJars",
+                                                                "(Ljava/lang/String;Ljava/util/List;)V"
+                                                        ));
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 9));
+                                                        insns.add(new MethodInsnNode(
+                                                                Opcodes.INVOKESTATIC,
+                                                                "survivalblock/train_across_time/agent/TATAgent",
+                                                                "tweakClassTweaker",
+                                                                "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
+                                                        ));
+                                                        insns.add(new VarInsnNode(Opcodes.ASTORE, 9));
+                                                        method.instructions.insertBefore(insn, insns);
+                                                    });
+                                        });
+                            }
+                            case TATConstants.MIXIN_PROCESSOR_CLASS -> {
+                                info.markChanged();
+                                info.computeMaxStacks();
+                                info.computeFrames();
+
+                                MethodPointer.method()
+                                        .name("couldTransformClass")
+                                        .findOrThrow(info.getNode(), method -> {
+                                            InsnPointer.simple()
+                                                    .opcode(Opcodes.POP)
+                                                    .ordinal(0)
+                                                    .findOrThrow(method.instructions, insn -> {
+                                                        var insns = new InsnList();
+
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                                                        insns.add(new MethodInsnNode(
+                                                                Opcodes.INVOKESTATIC,
+                                                                "survivalblock/train_across_time/agent/TATAgent",
+                                                                "couldTransformClass",
+                                                                "(Ljava/lang/String;)Z"
+                                                        ));
+
+                                                        var label = new LabelNode();
+                                                        insns.add(new JumpInsnNode(Opcodes.IFEQ, label));
+
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                                                        insns.add(new FieldInsnNode(
+                                                                Opcodes.GETFIELD,
+                                                                "org/spongepowered/asm/mixin/transformer/MixinProcessor",
+                                                                "lock",
+                                                                "Lorg/spongepowered/asm/util/ReEntranceLock;"
+                                                        ));
+                                                        insns.add(new MethodInsnNode(
+                                                                Opcodes.INVOKEVIRTUAL,
+                                                                "org/spongepowered/asm/util/ReEntranceLock",
+                                                                "pop",
+                                                                "()Lorg/spongepowered/asm/util/ReEntranceLock;"
+                                                        ));
+                                                        insns.add(new InsnNode(Opcodes.POP));
+
+                                                        insns.add(new InsnNode(Opcodes.ICONST_1));
+                                                        insns.add(new InsnNode(Opcodes.IRETURN));
+
+                                                        insns.add(label);
+
+                                                        method.instructions.insert(insn, insns);
+                                                    });
+                                        });
+                                MethodPointer.method()
+                                        .name("applyMixins")
+                                        .findOrThrow(info.getNode(), method -> {
+                                            InsnPointer.localOperation()
+                                                    .id(0)
+                                                    .ordinal(3)
+                                                    .findOrThrow(method.instructions, insn -> {
+                                                        var transformedVar = 6;
+                                                        var nodeVar = 3;
+
+                                                        var insns = new InsnList();
+
+                                                        insns.add(new VarInsnNode(Opcodes.ILOAD, transformedVar));
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, nodeVar));
+                                                        insns.add(new MethodInsnNode(
+                                                                Opcodes.INVOKESTATIC,
+                                                                "survivalblock/train_across_time/agent/TATAgent",
+                                                                "transformUnary",
+                                                                "(Lorg/objectweb/asm/tree/ClassNode;)Z"
+                                                        ));
+
+                                                        insns.add(new InsnNode(Opcodes.IOR));
+                                                        insns.add(new VarInsnNode(Opcodes.ISTORE, transformedVar));
+
+                                                        method.instructions.insertBefore(insn, insns);
+                                                    });
+                                        });
+                            }
+                            case TATConstants.CLASS_INFO_CLASS -> {
+                                info.markChanged();
+                                info.computeMaxStacks();
+
+                                MethodPointer.method()
+                                        .name("forName")
+                                        .findOrThrow(info.getNode(), method -> {
+                                            InsnPointer.methodCall()
+                                                    .name("<init>")
+                                                    .ordinal(1)
+                                                    .findOrThrow(method.instructions, insn -> {
+                                                        var insns = new InsnList();
+                                                        insns.add(new InsnNode(Opcodes.ICONST_0));
+                                                        insns.add(new MethodInsnNode(
+                                                                Opcodes.INVOKESTATIC,
+                                                                "survivalblock/train_across_time/agent/TATAgent",
+                                                                "transformStatic",
+                                                                "(Lorg/objectweb/asm/tree/ClassNode;Z)Lorg/objectweb/asm/tree/ClassNode;"
+                                                        ));
+                                                        insns.add(new VarInsnNode(Opcodes.ASTORE, 3));
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
+                                                        method.instructions.insertBefore(insn, insns);
+                                                    });
+                                        });
+                            }
+                            case TATConstants.MIXIN_INFO_CLASS -> {
+                                info.markChanged();
+                                info.computeMaxStacks();
+
+                                MethodPointer.method()
+                                        .name("loadMixinClass")
+                                        .findOrThrow(info.getNode(), method -> {
+                                            InsnPointer.simple()
+                                                    .opcode(Opcodes.ARETURN)
+                                                    .findOrThrow(method.instructions, insn -> {
+                                                        var insns = new InsnList();
+                                                        insns.add(new InsnNode(Opcodes.ICONST_1));
+                                                        insns.add(new MethodInsnNode(
+                                                                Opcodes.INVOKESTATIC,
+                                                                "survivalblock/train_across_time/agent/TATAgent",
+                                                                "transformStatic",
+                                                                "(Lorg/objectweb/asm/tree/ClassNode;Z)Lorg/objectweb/asm/tree/ClassNode;"
+                                                        ));
+                                                        insns.add(new VarInsnNode(Opcodes.ASTORE, 2));
+                                                        insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                                                        method.instructions.insertBefore(insn, insns);
+                                                    });
+                                        });
+                            }
+                            default -> throw new AssertionError();
                         }
-                        case TATConstants.V1_METADATA_PARSER_CLASS -> {
-                            info.markChanged();
-                            info.computeMaxStacks();
 
-                            MethodPointer.method()
-                                    .name("parse")
-                                    .findOrThrow(info.getNode(), method -> {
-                                        InsnPointer.type(TATConstants.V1_METADATA_CLASS)
-                                                .lastOrdinal()
-                                                .findOrThrow(method.instructions, insn -> {
-                                                    var insns = new InsnList();
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 10));
-                                                    insns.add(new MethodInsnNode(
-                                                            Opcodes.INVOKESTATIC,
-                                                            "survivalblock/train_across_time/agent/TATAgent",
-                                                            "tweakModDependencies",
-                                                            "(Ljava/lang/String;Ljava/util/List;)V"
-                                                    ));
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 7));
-                                                    insns.add(new MethodInsnNode(
-                                                            Opcodes.INVOKESTATIC,
-                                                            "survivalblock/train_across_time/agent/TATAgent",
-                                                            "tweakNestedJars",
-                                                            "(Ljava/lang/String;Ljava/util/List;)V"
-                                                    ));
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 9));
-                                                    insns.add(new MethodInsnNode(
-                                                            Opcodes.INVOKESTATIC,
-                                                            "survivalblock/train_across_time/agent/TATAgent",
-                                                            "tweakClassTweaker",
-                                                            "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
-                                                    ));
-                                                    insns.add(new VarInsnNode(Opcodes.ASTORE, 9));
-                                                    method.instructions.insertBefore(insn, insns);
-                                                });
-                                    });
-                        }
-                        case TATConstants.MIXIN_PROCESSOR_CLASS -> {
-                            info.markChanged();
-                            info.computeMaxStacks();
-                            info.computeFrames();
-
-                            MethodPointer.method()
-                                    .name("couldTransformClass")
-                                    .findOrThrow(info.getNode(), method -> {
-                                        InsnPointer.simple()
-                                                .opcode(Opcodes.POP)
-                                                .findOrThrow(method.instructions, insn -> {
-                                                    var insns = new InsnList();
-
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                                                    insns.add(new MethodInsnNode(
-                                                            Opcodes.INVOKESTATIC,
-                                                            "survivalblock/train_across_time/agent/TATAgent",
-                                                            "couldTransformClass",
-                                                            "(Ljava/lang/String;)Z"
-                                                    ));
-
-                                                    var label = new LabelNode();
-                                                    insns.add(new JumpInsnNode(Opcodes.IFEQ, label));
-
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                                                    insns.add(new FieldInsnNode(
-                                                            Opcodes.GETFIELD,
-                                                            "org/spongepowered/asm/mixin/transformer/MixinProcessor",
-                                                            "lock",
-                                                            "Lorg/spongepowered/asm/util/ReEntranceLock;"
-                                                    ));
-                                                    insns.add(new MethodInsnNode(
-                                                            Opcodes.INVOKEVIRTUAL,
-                                                            "org/spongepowered/asm/util/ReEntranceLock",
-                                                            "pop",
-                                                            "()Lorg/spongepowered/asm/util/ReEntranceLock;"
-                                                    ));
-                                                    insns.add(new InsnNode(Opcodes.POP));
-
-                                                    insns.add(new InsnNode(Opcodes.ICONST_1));
-                                                    insns.add(new InsnNode(Opcodes.IRETURN));
-
-                                                    insns.add(label);
-
-                                                    method.instructions.insert(insn, insns);
-                                                });
-                                    });
-                            MethodPointer.method()
-                                    .name("applyMixins")
-                                    .findOrThrow(info.getNode(), method -> {
-                                        InsnPointer.localOperation()
-                                                .id(0)
-                                                .ordinal(3)
-                                                .findOrThrow(method.instructions, insn -> {
-                                                    var transformedVar = 6;
-                                                    var nodeVar = 3;
-
-                                                    var insns = new InsnList();
-
-                                                    insns.add(new VarInsnNode(Opcodes.ILOAD, transformedVar));
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, nodeVar));
-                                                    insns.add(new MethodInsnNode(
-                                                            Opcodes.INVOKESTATIC,
-                                                            "survivalblock/train_across_time/agent/TATAgent",
-                                                            "transformUnary",
-                                                            "(Lorg/objectweb/asm/tree/ClassNode;)Z"
-                                                    ));
-
-                                                    insns.add(new InsnNode(Opcodes.IOR));
-                                                    insns.add(new VarInsnNode(Opcodes.ISTORE, transformedVar));
-
-                                                    method.instructions.insertBefore(insn, insns);
-                                                });
-                                    });
-                        }
-                        case TATConstants.CLASS_INFO_CLASS -> {
-                            info.markChanged();
-                            info.computeMaxStacks();
-
-                            MethodPointer.method()
-                                    .name("forName")
-                                    .findOrThrow(info.getNode(), method -> {
-                                        InsnPointer.methodCall()
-                                                .name("<init>")
-                                                .ordinal(1)
-                                                .findOrThrow(method.instructions, insn -> {
-                                                    var insns = new InsnList();
-                                                    insns.add(new InsnNode(Opcodes.ICONST_0));
-                                                    insns.add(new MethodInsnNode(
-                                                            Opcodes.INVOKESTATIC,
-                                                            "survivalblock/train_across_time/agent/TATAgent",
-                                                            "transformStatic",
-                                                            "(Lorg/objectweb/asm/tree/ClassNode;Z)Lorg/objectweb/asm/tree/ClassNode;"
-                                                    ));
-                                                    insns.add(new VarInsnNode(Opcodes.ASTORE, 3));
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
-                                                    method.instructions.insertBefore(insn, insns);
-                                                });
-                                    });
-                        }
-                        case TATConstants.MIXIN_INFO_CLASS -> {
-                            info.markChanged();
-                            info.computeMaxStacks();
-
-                            MethodPointer.method()
-                                    .name("loadMixinClass")
-                                    .findOrThrow(info.getNode(), method -> {
-                                        InsnPointer.simple()
-                                                .opcode(Opcodes.ARETURN)
-                                                .findOrThrow(method.instructions, insn -> {
-                                                    var insns = new InsnList();
-                                                    insns.add(new InsnNode(Opcodes.ICONST_1));
-                                                    insns.add(new MethodInsnNode(
-                                                            Opcodes.INVOKESTATIC,
-                                                            "survivalblock/train_across_time/agent/TATAgent",
-                                                            "transformStatic",
-                                                            "(Lorg/objectweb/asm/tree/ClassNode;Z)Lorg/objectweb/asm/tree/ClassNode;"
-                                                    ));
-                                                    insns.add(new VarInsnNode(Opcodes.ASTORE, 2));
-                                                    insns.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                                                    method.instructions.insertBefore(insn, insns);
-                                                });
-                                    });
-                        }
+                        return info.compile((name, bytes) -> TRANSFORMER.debugSaveClass(name, () -> bytes));
+                    } catch (Throwable t) {
+                        TATConstants.PLATFORM.error("Error while transforming early class " + className, t);
                     }
-
-                    return info.compile((name, bytes) -> TRANSFORMER.debugSaveClass(name, () -> bytes));
                 }
 
                 return null;
-
-                /*
-                var transformed = TRANSFORMER.transform(Opcodes.ASM9, true, visitor -> {
-                    new ClassReader(classfileBuffer).accept(visitor, 0);
-                });
-
-                if (transformed == null) {
-                    return null;
-                }
-
-                var bytes = transformed.toByteArray();
-
-                TRANSFORMER.debugSaveClass(className, () -> bytes == null ? classfileBuffer : bytes);
-
-                return bytes;
-                 */
             }
         }, true);
     }
