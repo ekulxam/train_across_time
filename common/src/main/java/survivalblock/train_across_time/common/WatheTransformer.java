@@ -23,10 +23,18 @@ public class WatheTransformer {
     public WatheMappingsCache mappingsCache = WatheMappingsCache.create();
 
     public WatheTransformer() {
+        if (debugPath != null) {
+            TATConstants.PLATFORM.info("Debug path: " + debugPath);
+        }
+
         var mappingsOutputFile = System.getProperty("train_across_time.mappings_output_file");
         usedMappingsOutput = mappingsOutputFile == null ? UsedMappingsOutput.NONE : new UsedMappingsOutput() {
             public final WatheMappingsCache usedMappingsStorage = WatheMappingsCache.createStandalone();
             public final Path outputFile = Paths.get(mappingsOutputFile);
+
+            {
+                TATConstants.PLATFORM.info("Mappings output file: " + outputFile);
+            }
 
             @Override
             public void useClass(String intermediary) {
@@ -84,7 +92,7 @@ public class WatheTransformer {
                 patch.accept(info);
             }
         } catch (Throwable t) {
-            TATConstants.PLATFORM.error("Error while processing class " + info.getNode().name, t);
+            TATConstants.PLATFORM.error("Error while transforming class " + info.getNode().name, t);
         }
     }
 

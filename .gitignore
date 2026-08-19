@@ -44,4 +44,5 @@ replay_*.log
 
 **/.run
 **/.intellijPlatform
+**/.train_plugin_debug
 src/main/resources/agent.jar

@@ -55,7 +55,7 @@ public abstract class TATTransform implements TransformAction<TATTransform.Param
 
                             TRANSFORMER.transform(Opcodes.ASM9, false, info);
 
-                            var transformedBytes = info.compile();
+                            var transformedBytes = info.compile((name, b) -> TRANSFORMER.debugSaveClass(name, () -> b));
 
                             if (transformedBytes != null) {
                                 if (!modified) {

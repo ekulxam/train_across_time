@@ -17,6 +17,7 @@ package survivalblock.train_across_time.common;
 
 import net.typho.asm_util.ASMUtil;
 import net.typho.asm_util.ClassTransformInfo;
+import net.typho.asm_util.Modifier;
 import net.typho.asm_util.field.FieldPointer;
 import net.typho.asm_util.insn.InsnPointer;
 import net.typho.asm_util.method.MethodPointer;
@@ -112,8 +113,9 @@ public class WatheClassPatches {
     ) {
         MethodPointer.method()
                 .name(name)
+                .modifier(Modifier.BRIDGE, false)
                 .findOrThrow(node, method -> {
-                    transmuter.accept(at.findOrThrow(method.instructions));
+                    at.forEach(method.instructions, transmuter);
                 });
     }
 
@@ -316,7 +318,7 @@ public class WatheClassPatches {
         ), info -> {
             MethodPointer.method()
                     .name("createWithItem")
-                    .findOrThrow(info.getNode(), method -> {
+                    .forEach(info.getNode(), method -> {
                         switch (method.desc) {
                             case "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;)Lnet/minecraft/world/level/block/Block;",
                                  "(Ljava/lang/String;Lnet/minecraft/world/level/block/Block;[Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/level/block/Block;" -> {
@@ -723,6 +725,18 @@ public class WatheClassPatches {
                     "value", "INVOKE",
                     "target", "Lnet/minecraft/world/attribute/BedRule;canSleep(Lnet/minecraft/world/level/Level;)Z"
             );
+            changeInjectionMethod(
+                    info.getNode(),
+                    "wathe$saveData",
+                    INJECT,
+                    "addAdditionalSaveData(Lnet/minecraft/world/level/storage/ValueOutput;)V"
+            );
+            changeInjectionMethod(
+                    info.getNode(),
+                    "wathe$readData",
+                    INJECT,
+                    "readAdditionalSaveData(Lnet/minecraft/world/level/storage/ValueInput;)V"
+            );
 
             tweakNBTSaveMethod(info.getNode(), "wathe$saveData", false);
             tweakNBTLoadMethod(info.getNode(), "wathe$readData", false);
@@ -846,7 +860,8 @@ public class WatheClassPatches {
                             .instructions,
                     InsnPointer.fieldGetStatic()
                             .owner("net/fabricmc/fabric/api/blockrenderlayer/v1/BlockRenderLayerMap")
-                            .name("INSTANCE"),
+                            .name("INSTANCE")
+                            .ordinal(0),
                     InsnPointer.methodCallInterface()
                             .lastOrdinal()
                             .owner("net/fabricmc/fabric/api/blockrenderlayer/v1/BlockRenderLayerMap")
@@ -861,7 +876,7 @@ public class WatheClassPatches {
 
             MethodPointer.method()
                     .name("<init>")
-                    .findOrThrow(info.getNode(), method -> {
+                    .forEach(info.getNode(), method -> {
                         for (LocalVariableNode var : method.localVariables) {
                             if (var.index >= 1) {
                                 var.index++;
@@ -934,7 +949,8 @@ public class WatheClassPatches {
             ASMUtil.splice(
                     init.instructions,
                     InsnPointer.localOperation()
-                            .id(0),
+                            .id(0)
+                            .ordinal(0),
                     InsnPointer.methodCallDirect()
                             .owner("dev/doctor4t/wathe/client/render/block_entity/AnimatableBlockEntityRenderer")
                             .name("<init>"),

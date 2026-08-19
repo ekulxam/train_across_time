@@ -28,5 +28,5 @@ dependencies {
     implementation("org.ow2.asm:asm-util:9.10.1")
     implementation("org.ow2.asm:asm-commons:9.10.1")
     implementation("org.jetbrains:annotations:26.0.2")
-    implementation("net.typho:asm_util:1.0.19")
+    implementation("net.typho:asm_util:1.1.0")
 }
