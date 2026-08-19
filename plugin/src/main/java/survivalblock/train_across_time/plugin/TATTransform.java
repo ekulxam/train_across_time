@@ -6,6 +6,7 @@ import org.gradle.api.artifacts.transform.*;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.NonNull;
 import org.objectweb.asm.ClassReader;
 import survivalblock.train_across_time.common.TATConstants;
@@ -18,7 +19,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 
-@CacheableTransform
+@DisableCachingByDefault
 public abstract class TATTransform implements TransformAction<TATTransform.Parameters> {
     @Classpath
     @InputArtifact

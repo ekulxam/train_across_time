@@ -24,7 +24,7 @@ import net.typho.asm_util.method.MethodPointer;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
-import java.util.*;
+import java.lang.classfile.Opcode;import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -653,6 +653,94 @@ public class WatheClassPatches {
                             }
                         });
                         info.computeMaxStacks();
+                    });
+
+            MethodPointer.method()
+                    .name("initialize")
+                    .findOrThrow(info.getNode(), method -> {
+                        var insns = new InsnList();
+
+                        insns.add(new FieldInsnNode(
+                                Opcodes.GETSTATIC,
+                                "dev/doctor4t/wathe/block/BranchBlock",
+                                "STRIPPED_BRANCHES",
+                                "Ljava/util/Map;"
+                        ));
+                        insns.add(new FieldInsnNode(
+                                Opcodes.GETSTATIC,
+                                info.getNode().name,
+                                "PALE_OAK_BRANCH",
+                                "Lnet/minecraft/world/level/block/Block;"
+                        ));
+                        insns.add(new FieldInsnNode(
+                                Opcodes.GETSTATIC,
+                                info.getNode().name,
+                                "STRIPPED_PALE_OAK_BRANCH",
+                                "Lnet/minecraft/world/level/block/Block;"
+                        ));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKEINTERFACE,
+                                "java/util/Map",
+                                "put",
+                                "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+                        ));
+
+                        method.instructions.insertBefore(
+                                InsnPointer.fieldGetStatic()
+                                        .name("STRIPPED_BRANCHES")
+                                        .ordinal(9)
+                                        .findOrThrow(method.instructions),
+                                insns
+                        );
+
+                        insns = new InsnList();
+
+                        insns.add(new VarInsnNode(
+                                Opcodes.ALOAD,
+                                0
+                        ));
+                        insns.add(new FieldInsnNode(
+                                Opcodes.GETSTATIC,
+                                "dev/doctor4t/wathe/index/WatheBlocks",
+                                "PALE_OAK_BRANCH",
+                                "Lnet/minecraft/world/level/block/Block;"
+                        ));
+                        insns.add(new InsnNode(Opcodes.ICONST_5));
+                        insns.add(new IntInsnNode(Opcodes.BIPUSH, 20));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKEINTERFACE,
+                                "net/fabricmc/fabric/api/registry/FlammableBlockRegistry",
+                                "add",
+                                "(Lnet/minecraft/world/level/block/Block;II)V"
+                        ));
+
+                        insns.add(new VarInsnNode(
+                                Opcodes.ALOAD,
+                                0
+                        ));
+                        insns.add(new FieldInsnNode(
+                                Opcodes.GETSTATIC,
+                                "dev/doctor4t/wathe/index/WatheBlocks",
+                                "STRIPPED_PALE_OAK_BRANCH",
+                                "Lnet/minecraft/world/level/block/Block;"
+                        ));
+                        insns.add(new InsnNode(Opcodes.ICONST_5));
+                        insns.add(new IntInsnNode(Opcodes.BIPUSH, 20));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKEINTERFACE,
+                                "net/fabricmc/fabric/api/registry/FlammableBlockRegistry",
+                                "add",
+                                "(Lnet/minecraft/world/level/block/Block;II)V"
+                        ));
+
+                        method.instructions.insertBefore(
+                                InsnPointer.localOperation()
+                                        .opcode(Opcodes.ALOAD)
+                                        .id(0)
+                                        .ordinal(16)
+                                        .findOrThrow(method.instructions),
+                                insns
+                        );
                     });
         });
         register(Set.of(
