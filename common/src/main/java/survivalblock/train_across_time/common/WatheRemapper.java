@@ -61,6 +61,7 @@ public class WatheRemapper extends Remapper {
             case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents" -> "net/fabricmc/fabric/api/client/rendering/v1/level/LevelRenderEvents";
             case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderEvents$Last" -> "net/fabricmc/fabric/api/client/rendering/v1/level/LevelRenderEvents$EndMain";
             case "net/fabricmc/fabric/api/client/rendering/v1/WorldRenderContext" -> "net/fabricmc/fabric/api/client/rendering/v1/level/LevelRenderContext";
+            case "net/fabricmc/fabric/api/client/keybinding/v1/KeyBindingHelper" -> "net/fabricmc/fabric/api/client/keymapping/v1/KeyMappingHelper";
 
             default -> internalName;
         };
@@ -102,6 +103,11 @@ public class WatheRemapper extends Remapper {
             };
             case "net/fabricmc/fabric/api/itemgroup/v1/ItemGroupEvents" -> switch (name) {
                 case "modifyEntriesEvent" -> "modifyOutputEvent";
+
+                default -> name;
+            };
+            case "net/fabricmc/fabric/api/client/keybinding/v1/KeyBindingHelper" -> switch (name) {
+                case "registerKeyBinding" -> "registerKeyMapping";
 
                 default -> name;
             };

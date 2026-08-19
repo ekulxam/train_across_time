@@ -1048,6 +1048,74 @@ public class WatheClassPatches {
                     }
             );
         });
+        register(Set.of(
+                "dev/doctor4t/wathe/client/WatheClient"
+        ), info -> {
+            info.getNode().fields.addFirst(new FieldNode(
+                    Opcodes.ASM9,
+                    Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL,
+                    "KEY_MAPPING_CATEGORY",
+                    "Lnet/minecraft/client/KeyMapping$Category;",
+                    null,
+                    null
+            ));
+
+            MethodPointer.method()
+                    .name("<clinit>")
+                    .findOrThrow(info.getNode(), method -> {
+                        var insns = new InsnList();
+                        insns.add(new LdcInsnNode(TATConstants.WATHE));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "dev/doctor4t/wathe/Wathe",
+                                "id",
+                                "(Ljava/lang/String;)Lnet/minecraft/resources/Identifier;"
+                        ));
+                        insns.add(new MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "net/minecraft/client/KeyMapping$Category",
+                                "register",
+                                "(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/KeyMapping$Category;"
+                        ));
+                        insns.add(new FieldInsnNode(
+                                Opcodes.PUTSTATIC,
+                                info.getNode().name,
+                                "KEY_MAPPING_CATEGORY",
+                                "Lnet/minecraft/client/KeyMapping$Category;"
+                        ));
+                        method.instructions.insert(insns);
+                    });
+
+            MethodPointer.method()
+                    .name("onInitializeClient")
+                    .findOrThrow(info.getNode(), method -> {
+                        var insns = new InsnList();
+
+                        insns.add(new FieldInsnNode(
+                                Opcodes.GETSTATIC,
+                                info.getNode().name,
+                                "KEY_MAPPING_CATEGORY",
+                                "Lnet/minecraft/client/KeyMapping$Category;"
+                        ));
+
+                        ASMUtil.splice(
+                                method.instructions,
+                                InsnPointer.constant("category.wathe.keybinds"),
+                                insns
+                        );
+                        InsnPointer.methodCall()
+                                .owner("net/minecraft/client/KeyMapping")
+                                .name("<init>")
+                                .forEach(method.instructions, field -> {
+                                    field.desc = field.desc.replace("Ljava/lang/String;)V", "Lnet/minecraft/client/KeyMapping$Category;)V");
+                                });
+                    });
+        });
+        register(Set.of(
+                "dev/doctor4t/ratatouille/mixin/client/optionlock/SliderWidgetMixin"
+        ), info -> {
+            info.getNode().methods.removeIf(method -> method.name.equals("ratatouille$disableSliderHandleIfInactive"));
+        });
         /*
         register(Set.of(
                 "dev/doctor4t/wathe/client/render/entity/Player"
