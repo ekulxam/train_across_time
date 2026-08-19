@@ -135,7 +135,7 @@ dependencies {
     modstitchModCompileOnly("maven.modrinth:iris:1.11.2+26.1-fabric")
 
     implementation(modstitchJiJ("net.fabricmc:tiny-remapper:0.14.0")!!)
-    implementation(modstitchJiJ("net.typho:asm_util:1.1.0")!!)
+    implementation(modstitchJiJ("net.typho:asm_util:1.1.1")!!)
     implementation(modstitchJiJ("org.jetbrains.kotlin:kotlin-stdlib:2.3.21")!!)
     implementation(modstitchJiJ(project(":common"))!!)
 }
