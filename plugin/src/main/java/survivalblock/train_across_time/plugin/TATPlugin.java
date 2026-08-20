@@ -2,18 +2,13 @@ package survivalblock.train_across_time.plugin;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Attribute;
 import org.jspecify.annotations.NonNull;
 import survivalblock.train_across_time.common.TATConstants;
 
-import java.nio.file.Path;
-
 public class TATPlugin implements Plugin<Project> {
-    public static Path DEBUG_PATH;
-
     public final Attribute<Boolean> tweakedAttrib = Attribute.of(
             "train_across_time:tweaked",
             Boolean.class
@@ -21,8 +16,6 @@ public class TATPlugin implements Plugin<Project> {
 
     @Override
     public void apply(@NonNull Project project) {
-        DEBUG_PATH = project.file(".train_plugin_debug").toPath().toAbsolutePath();
-
         project.getDependencies().getAttributesSchema().attribute(tweakedAttrib);
         project.getDependencies().getArtifactTypes().getByName(ArtifactTypeDefinition.JAR_TYPE).getAttributes().attribute(tweakedAttrib, false);
 

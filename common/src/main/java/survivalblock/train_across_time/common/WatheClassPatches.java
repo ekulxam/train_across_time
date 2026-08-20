@@ -1398,5 +1398,10 @@ public class WatheClassPatches {
                     "renderLevel(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/renderer/state/level/CameraRenderState;Lorg/joml/Matrix4fc;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lorg/joml/Vector4f;ZLnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V"
             );
         });
+        register(Set.of(
+                "dev/doctor4t/wathe/mixin/client/LivingEntityRendererMixin"
+        ), info -> {
+            info.getNode().methods.clear();
+        });
     }
 }

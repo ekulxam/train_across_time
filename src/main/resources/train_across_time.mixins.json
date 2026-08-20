@@ -16,6 +16,8 @@
   ],
   "client": [
     "AbstractSliderButtonMixin",
+    "AvatarRendererMixin",
+    "AvatarRenderStateMixin",
     "ChatComponentMixin",
     "ClientLevelMixin",
     "EntityRendererMixin",
