@@ -24,7 +24,8 @@ import net.typho.asm_util.method.MethodPointer;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
-import java.lang.classfile.Opcode;import java.util.*;
+import java.lang.classfile.Opcode;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -39,6 +40,7 @@ public class WatheClassPatches {
     public static final String MODIFY_EXPRESSION_VALUE = "Lcom/llamalad7/mixinextras/injector/ModifyExpressionValue;";
     public static final String MODIFY_RETURN_VALUE = "Lcom/llamalad7/mixinextras/injector/ModifyReturnValue;";
     public static final String WRAP_OPERATION = "Lcom/llamalad7/mixinextras/injector/wrapoperation/WrapOperation;";
+    public static final String WRAP_METHOD = "Lcom/llamalad7/mixinextras/injector/wrapmethod/WrapMethod;";
     public static final String INJECT = "Lorg/spongepowered/asm/mixin/injection/Inject;";
 
     public static final Map<String, Consumer<ClassTransformInfo>> PATCHES = new HashMap<>();
@@ -244,8 +246,12 @@ public class WatheClassPatches {
                                     break;
                                 }
                             }
+
+                            return;
                         }
                     }
+
+                    throw new NullPointerException("Method " + node.name + "." + methodName + " does not have mixin annotation " + injectionDesc);
                 });
     }
 
@@ -1303,14 +1309,94 @@ public class WatheClassPatches {
         ), info -> {
             info.getNode().methods.removeIf(method -> method.name.equals("ratatouille$disableSliderHandleIfInactive"));
         });
-        /*
         register(Set.of(
-                "dev/doctor4t/wathe/client/render/entity/Player"
+                "dev/doctor4t/wathe/mixin/client/restrictions/ChatHudMixin"
         ), info -> {
-            if (info.getNode().signature != null) {
-                info.getNode().signature = info.getNode().signature.substring(0, info.getNode().signature.indexOf("<")) + "Ldev/doctor4t/wathe/entity/NoteEntity;Lsurvivalblock/train_across_time/provided/client/NoteEntityRenderState;>";
-            }
+            info.getNode().methods.remove(
+                    MethodPointer.method()
+                            .name("wathe$disableChatRender")
+                            .findOrThrow(info.getNode())
+            );
         });
-        */
+        register(Set.of(
+                "dev/doctor4t/wathe/mixin/client/restrictions/KeyboardMixin"
+        ), info -> {
+            changeInjectionMethod(
+                    info.getNode(),
+                    "wathe$disableF3Keybinds",
+                    WRAP_METHOD,
+                    "handleDebugKeys(Lnet/minecraft/client/input/KeyEvent;)Z"
+            );
+
+            MethodPointer.method()
+                    .name("wathe$disableF3Keybinds")
+                    .findOrThrow(info.getNode(), method -> {
+                        method.desc = method.desc.replaceFirst("I", "Lnet/minecraft/client/input/KeyEvent;");
+                        method.signature = method.signature.replaceFirst("I", "Lnet/minecraft/client/input/KeyEvent;");
+
+                        for (LocalVariableNode var : method.localVariables) {
+                            if (var.desc.equals("I")) {
+                                var.desc = "Lnet/minecraft/client/input/KeyEvent;";
+                            }
+                        }
+
+                        InsnPointer.localOperation()
+                                .id(1)
+                                .forEach(method.instructions, insn -> {
+                                    insn.setOpcode(Opcodes.ALOAD);
+                                });
+                        InsnPointer.methodCall()
+                                .owner("java/lang/Integer")
+                                .name("valueOf")
+                                .forEach(method.instructions, insn -> {
+                                    method.instructions.remove(insn);
+                                });
+                        InsnPointer.localOperation()
+                                .id(1)
+                                .ordinal(0)
+                                .findOrThrow(method.instructions, insn -> {
+                                    var insns = new InsnList();
+                                    insns.add(new FieldInsnNode(
+                                            Opcodes.GETFIELD,
+                                            "net/minecraft/client/input/KeyEvent",
+                                            "key",
+                                            "I"
+                                    ));
+                                    method.instructions.insert(insn, insns);
+                                });
+                    });
+        });
+        register(Set.of(
+                "dev/doctor4t/wathe/mixin/client/restrictions/WorldRendererMixin"
+        ), info -> {
+            changeInjectionMethod(
+                    info.getNode(),
+                    "render",
+                    MODIFY_EXPRESSION_VALUE,
+                    "renderLevel(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/renderer/state/level/CameraRenderState;Lorg/joml/Matrix4fc;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lorg/joml/Vector4f;ZLnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V"
+            );
+        });
+        register(Set.of(
+                "dev/doctor4t/wathe/mixin/client/scenery/SceneryWorldRendererMixin"
+        ), info -> {
+            info.getNode().methods.clear();
+            // TODO scenery rendering
+        });
+        register(Set.of(
+                "dev/doctor4t/wathe/mixin/client/scenery/WorldRendererMixin"
+        ), info -> {
+            changeInjectionMethod(
+                    info.getNode(),
+                    "wathe$disableSky",
+                    WRAP_OPERATION,
+                    "renderLevel(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/renderer/state/level/CameraRenderState;Lorg/joml/Matrix4fc;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lorg/joml/Vector4f;ZLnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V"
+            );
+            changeInjectionMethod(
+                    info.getNode(),
+                    "wathe$applyBlizzardFog",
+                    WRAP_OPERATION,
+                    "renderLevel(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/renderer/state/level/CameraRenderState;Lorg/joml/Matrix4fc;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lorg/joml/Vector4f;ZLnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V"
+            );
+        });
     }
 }
