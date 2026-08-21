@@ -22,6 +22,7 @@ import net.typho.asm_util.field.FieldPointer;
 import net.typho.asm_util.insn.InsnPointer;
 import net.typho.asm_util.method.MethodPointer;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.lang.classfile.Opcode;
@@ -222,6 +223,31 @@ public class WatheClassPatches {
                         }
                     }
                 });
+    }
+
+    public static void changeMixinTarget(
+            ClassNode node,
+            Type... newTarget
+    ) {
+        for (AnnotationNode anno : node.invisibleAnnotations) {
+            if (anno.desc.equals("Lorg/spongepowered/asm/mixin/Mixin;")) {
+                var iterator = anno.values.listIterator();
+
+                while (iterator.hasNext()) {
+                    var name = (String) iterator.next();
+                    var value = iterator.next();
+
+                    if (name.equals("value")) {
+                        iterator.set(new ArrayList<>(Arrays.asList(newTarget)));
+                        break;
+                    }
+                }
+
+                return;
+            }
+        }
+
+        throw new NullPointerException("Class " + node.name + " does not have @Mixin annotation");
     }
 
     public static void changeInjectionMethod(
@@ -1385,12 +1411,7 @@ public class WatheClassPatches {
         register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/scenery/WorldRendererMixin"
         ), info -> {
-            changeInjectionMethod(
-                    info.getNode(),
-                    "wathe$disableSky",
-                    WRAP_OPERATION,
-                    "renderLevel(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/renderer/state/level/CameraRenderState;Lorg/joml/Matrix4fc;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lorg/joml/Vector4f;ZLnet/minecraft/client/renderer/chunk/ChunkSectionsToRender;)V"
-            );
+            info.getNode().methods.removeIf(method -> method.name.equals("wathe$disableSky"));
             changeInjectionMethod(
                     info.getNode(),
                     "wathe$applyBlizzardFog",
@@ -1400,6 +1421,32 @@ public class WatheClassPatches {
         });
         register(Set.of(
                 "dev/doctor4t/wathe/mixin/client/LivingEntityRendererMixin"
+        ), info -> {
+            info.getNode().methods.clear();
+        });
+        register(Set.of(
+                "dev/doctor4t/ratatouille/mixin/client/render/WorldRendererMixin"
+        ), info -> {
+            changeMixinTarget(
+                    info.getNode(),
+                    Type.getType("Lnet/minecraft/client/renderer/GameRenderer;")
+            );
+            changeInjectionMethod(
+                    info.getNode(),
+                    "ratatouille$injectionBeforeTransparencyChainProcess",
+                    INJECT,
+                    "render(Lnet/minecraft/client/DeltaTracker;Z)V"
+            );
+            changeInjectionAt(
+                    info.getNode(),
+                    "ratatouille$injectionBeforeTransparencyChainProcess",
+                    INJECT,
+                    "value", "INVOKE",
+                    "target", "Lnet/minecraft/client/renderer/LevelRenderer;doEntityOutline()V"
+            );
+        });
+        register(Set.of(
+                "dev/doctor4t/wathe/mixin/client/restrictions/WorldRendererMixin"
         ), info -> {
             info.getNode().methods.clear();
         });

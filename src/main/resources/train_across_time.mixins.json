@@ -21,6 +21,7 @@
     "ChatComponentMixin",
     "ClientLevelMixin",
     "EntityRendererMixin",
+    "GameRendererMixin",
     "LocalPlayerMixin"
   ],
   "injectors": {

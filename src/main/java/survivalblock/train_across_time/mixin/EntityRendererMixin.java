@@ -15,6 +15,7 @@
  */
 package survivalblock.train_across_time.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.doctor4t.wathe.api.WatheRoles;
@@ -43,5 +44,17 @@ public class EntityRendererMixin {
         }
 
         return original;
+    }
+
+    @ModifyExpressionValue(
+            method = "extractRenderState",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/Entity;getTeamColor()I"
+            )
+    )
+    private int extractRenderState(int original, @Local Entity entity) {
+        int highlight = WatheClient.getInstinctHighlight(entity);
+        return highlight == -1 ? original : highlight;
     }
 }
